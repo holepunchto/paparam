@@ -1,3 +1,18 @@
+const EOL = '\n'
+
+module.exports = {
+  papa,
+  command,
+  header,
+  footer,
+  argv,
+  flag,
+  arg,
+  rest,
+  name,
+  description
+}
+
 class Parser {
   constructor (argv) {
     this.argv = argv
@@ -58,18 +73,23 @@ class Parser {
   }
 }
 
-class Paparam {
-  constructor (parent) {
+class Command {
+  constructor (parent, name) {
+    this.parent = parent
+    this.name = name
+    this.description = ''
+    this.header = description
+    this.footer = ''
+    this.runner = null
+    this.running = null
+
     this.definedCommands = new Map()
     this.definedFlags = new Map()
     this.definedArgs = []
-    this.runner = null
+    this.definedRest = null
 
     this.strictFlags = true
     this.strictArgs = true
-    this.isEatingRest = false
-    this.main = parent ? parent.main : this
-    this.parent = parent || null
 
     this.flags = {}
     this.args = {}
@@ -78,22 +98,143 @@ class Paparam {
     this.running = null
   }
 
-  static parseSoon (argv = []) {
-    const papa = new Paparam()
-    queueMicrotask(() => papa.parse())
-    return papa
+  _oneliner (short, relative) {
+    const stack = [this]
+    if (!relative) while (stack[stack.length - 1].parent) stack.push(stack[stack.length - 1].parent)
+
+    const run = stack.reverse().map(c => c.name || 'app')
+
+    if (!short) {
+      if (this.definedFlags.size > 0) run.push('[flags]')
+      for (const arg of this.definedArgs) run.push(arg.help)
+      if (this.definedCommands.size > 0) run.push('[command]')
+      if (this.definedRest !== null) run.push(this.definedRest.help)
+    }
+
+    return run.join(' ')
   }
 
-  static argv () {
-    if (typeof Bare !== 'undefined') {
-      return Bare.argv.slice(2)
+  _aligned (padding = 0, color = false) {
+    const l = []
+    const visited = new Set()
+
+    if (this.definedArgs.length > 0 || this.definedRest !== null) {
+      l.push(['', ''])
+      l.push(['Arguments:', ''])
     }
 
-    if (typeof process !== 'undefined') {
-      return process.argv.slice(2)
+    for (const arg of this.definedArgs) {
+      l.push(['  ' + arg.help, arg.fullDescription()])
+    }
+    if (this.definedRest) {
+      l.push(['  ' + this.definedRest.help, this.definedRest.description])
     }
 
-    return []
+    if (this.definedFlags.size) {
+      l.push(['', ''])
+      l.push(['Flags:', ''])
+    }
+
+    for (const flag of this.definedFlags.values()) {
+      if (visited.has(flag)) continue
+      visited.add(flag)
+
+      l.push(['  ' + flag.help, flag.description])
+    }
+
+    if (this.definedCommands.size) {
+      l.push(['', ''])
+      l.push(['Commands:', ''])
+    }
+
+    for (const c of this.definedCommands.values()) {
+      l.push(['  ' + c._oneliner(true, true), c.description])
+    }
+
+    if (padding === 0) {
+      for (const [left, right] of l) {
+        if (!right) continue
+        if (left.length > padding) padding = left.length
+      }
+    }
+
+    if (color === false) {
+      return this._aligned(padding, true)
+    }
+
+    let s = ''
+    for (const [left, right] of l) {
+      s += (left.padEnd(padding, ' ') + '   ' + right).trimRight() + EOL
+    }
+    s = s.trimRight()
+
+    return s ? s + EOL : ''
+  }
+
+  usage () {
+    let s = ''
+    s += 'Usage: ' + this._oneliner(false) + EOL
+
+    if (this.header || this.description) {
+      s += EOL
+      s += (this.header || this.description) + EOL
+    }
+
+    s += this._aligned()
+
+    if (this.footer) {
+      s += EOL
+      s += this.footer + EOL
+    }
+
+    return s
+  }
+
+  help () {
+    console.log(this.usage().trim())
+  }
+
+  addCommand (c) {
+    this.definedCommands.set(c.name, c)
+  }
+
+  addFlag (f) {
+    for (const alias of f.aliases) {
+      this.definedFlags.set(alias, f)
+    }
+  }
+
+  addArg (a) {
+    this.definedArgs.push(a)
+  }
+
+  addRest (a) {
+    this.definedRest = a
+  }
+
+  addData (d) {
+    switch (d.type) {
+      case 'name': {
+        this.name = d.value
+        break
+      }
+      case 'description': {
+        this.description = d.value
+        break
+      }
+      case 'header': {
+        this.header = unindent(d.value)
+        break
+      }
+      case 'footer': {
+        this.footer = unindent(d.value)
+        break
+      }
+    }
+  }
+
+  addRunner (runner) {
+    this.runner = runner
   }
 
   reset () {
@@ -106,57 +247,6 @@ class Paparam {
     return this
   }
 
-  flag (name, opts = {}) {
-    const bool = !opts.value
-
-    const flag = {
-      name,
-      bool
-    }
-
-    for (const f of toArray(opts.alias, name)) {
-      if (this.definedFlags.has(f)) throw new Error('Flag already in use:', f)
-      this.definedFlags.set(f, flag)
-    }
-
-    return this
-  }
-
-  arg (name) {
-    this.definedArgs.push({
-      name
-    })
-
-    return this
-  }
-
-  sloppy ({ flags = false, args = false } = {}) {
-    this.strictFlags = flags
-    this.strictArgs = args
-
-    return this
-  }
-
-  eatRest () {
-    this.isEatingRest = true
-    return this
-  }
-
-  command (name, opts = {}) {
-    const command = new Paparam(this)
-
-    for (const c of toArray(opts.alias, name)) {
-      if (this.definedCommands.has(c)) throw new Error('Command already in use:', c)
-      this.definedCommands.set(c, command)
-    }
-
-    return command
-  }
-
-  run (fn) {
-    this.runner = fn
-  }
-
   _getFlag (name) {
     let f = this.definedFlags.get(name)
     if (f === undefined && this.strictFlags === false) f = defaultFlag(name)
@@ -167,18 +257,22 @@ class Paparam {
     return this.definedCommands.get(name) || null
   }
 
+  sloppy ({ flags = false, args = false } = {}) {
+    this.strictFlags = flags
+    this.strictArgs = args
+  }
+
   _onflag (parser, flag) {
     const def = this._getFlag(flag.name)
-
     if (def === null) return createBail('UNKNOWN_FLAG', flag, null)
 
-    if (def.bool === true) {
+    if (def.boolean === true) {
       if (flag.value) return createBail('INVALID_FLAG', flag, null)
       this.flags[def.name] = true
       return null
     }
 
-    if (def.bool === false) {
+    if (def.boolean === false) {
       if (flag.value) {
         this.flags[def.name] = flag.value
         return null
@@ -212,7 +306,7 @@ class Paparam {
   }
 
   _onrest (parser, rest) {
-    if (this.isEatingRest === false) {
+    if (this.definedRest === null) {
       return createBail('UNKNOWN_ARG', null, { index: this.positionals.length, value: '--' })
     }
 
@@ -229,8 +323,8 @@ class Paparam {
     throw new Error(bail.reason)
   }
 
-  parse (argv = Paparam.argv()) {
-    const p = new Parser(argv)
+  parse (input = argv()) {
+    const p = new Parser(input)
 
     let c = this.reset()
     let bail = null
@@ -238,7 +332,7 @@ class Paparam {
     const visited = [c]
 
     while (bail === null) {
-      if (c.isEatingRest === true && c.positionals.length === c.definedArgs.length) {
+      if (c.definedRest !== null && c.positionals.length === c.definedArgs.length) {
         bail = c._onrest(p, p.rest())
         break
       }
@@ -279,10 +373,157 @@ class Paparam {
   }
 }
 
-module.exports = Paparam
+class Flag {
+  constructor (help, description = '') {
+    const { longName, shortName, aliases, boolean } = parseFlag(help)
 
-async function runAsync (c) {
-  await c.runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, command: c })
+    this.name = snakeToCamel(longName || shortName)
+    this.aliases = aliases
+    this.boolean = boolean
+    this.help = help
+    this.description = description
+  }
+}
+
+class Arg {
+  constructor (help, description = '') {
+    this.optional = help.startsWith('[')
+    this.name = snakeToCamel(help)
+    this.help = help
+    this.description = description
+  }
+
+  fullDescription () {
+    if (!this.optional) return this.description
+    const first = this.description.slice(0, 1)
+    return (first.toLowerCase() === first ? 'optional. ' : 'Optional. ') + this.description
+  }
+}
+
+class Rest {
+  constructor (help, description = '') {
+    this.help = help
+    this.description = description
+  }
+}
+
+class Data {
+  constructor (type, value) {
+    this.type = type
+    this.value = value
+  }
+}
+
+function papa (name, ...args) {
+  const cmd = typeof name === 'string' ? command(name, ...args) : command(null, name, ...args)
+  return cmd.parse()
+}
+
+function argv () {
+  return typeof process === 'undefined' ? global.Bare.argv.slice(2) : process.argv.slice(2)
+}
+
+function command (name, ...args) {
+  const c = new Command(null, name)
+
+  for (const a of args) {
+    if (a instanceof Command) {
+      c.addCommand(a)
+    } else if (a instanceof Flag) {
+      c.addFlag(a)
+    } else if (a instanceof Arg) {
+      c.addArg(a)
+    } else if (a instanceof Rest) {
+      c.addRest(a)
+    } else if (a instanceof Data) {
+      c.addData(a)
+    } else if (typeof a === 'function') {
+      c.addRunner(a)
+    } else {
+      throw new Error('Unknown arg: ' + a)
+    }
+  }
+
+  return c
+}
+
+function name (name) {
+  return new Data('name', name)
+}
+
+function description (desc) {
+  return new Data('description', desc)
+}
+
+function header (desc) {
+  return new Data('header', desc)
+}
+
+function footer (desc) {
+  return new Data('footer', desc)
+}
+
+function flag (help, description) {
+  return new Flag(help, description)
+}
+
+function rest (help, description) {
+  return new Rest(help, description)
+}
+
+function arg (help, description) {
+  return new Arg(help, description)
+}
+
+function unindent (info) {
+  const lines = info.split('\n').filter(trimLine)
+  if (!lines.length) return ''
+  const indent = lines[0].match(/^(\s*)/)[1]
+
+  let s = ''
+  for (const line of lines) s += line.slice(indent.length).trimRight() + '\n'
+  return s.trimRight()
+}
+
+function trimLine (line) {
+  return line.trim()
+}
+
+function snakeToCamel (name) {
+  const parts = name.match(/([a-zA-Z0-9-]+)/)[1].split(/-+/)
+  for (let i = 1; i < parts.length; i++) parts[i] = parts[i].slice(0, 1).toUpperCase() + parts[i].slice(1)
+  return parts.join('')
+}
+
+function parseFlag (help) {
+  const parts = help.split(/\s+/)
+  const result = { longName: null, shortName: null, aliases: [], boolean: true }
+
+  for (const p of parts) {
+    if (p.startsWith('--')) {
+      const name = trimFlag(p)
+      if (result.longName === null) result.longName = name
+      result.aliases.push(name)
+      continue
+    }
+
+    if (p.startsWith('-')) {
+      const name = trimFlag(p)
+      if (result.shortName === null) result.shortName = name
+      result.aliases.push(name)
+      continue
+    }
+
+    if (p.startsWith('[') || p.startsWith('<')) {
+      result.boolean = false
+    }
+  }
+
+  return result
+}
+
+function trimFlag (s) {
+  return s.replace(/(^[^0-9\w]+)|([^0-9\w]+$)/g, '')
 }
 
 function createBail (reason, flag, arg) {
@@ -296,12 +537,13 @@ function createBail (reason, flag, arg) {
 function defaultFlag (name) {
   return {
     name,
-    bool: false
+    aliases: [name],
+    boolean: false,
+    help: '',
+    description: ''
   }
 }
 
-function toArray (list, extra) {
-  list = Array.isArray(list) ? list : (list ? [list] : [])
-  if (extra) list.push(extra)
-  return list
+async function runAsync (c) {
+  await c.runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, command: c })
 }
