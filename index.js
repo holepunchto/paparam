@@ -1,7 +1,6 @@
 const EOL = '\n'
 
 module.exports = {
-  papa,
   command,
   header,
   footer,
@@ -164,9 +163,9 @@ class Command {
 
     let s = ''
     for (const [left, right] of l) {
-      s += (left.padEnd(padding, ' ') + '   ' + right).trimRight() + EOL
+      s += (left.padEnd(padding, ' ') + '   ' + right).trimEnd() + EOL
     }
-    s = s.trimRight()
+    s = s.trimEnd()
 
     return s ? s + EOL : ''
   }
@@ -288,7 +287,6 @@ class Command {
 
   _onarg (parser, arg) {
     const info = { index: this.positionals.length, value: arg }
-
     if (this.definedArgs.length <= this.positionals.length) {
       if (this.strictArgs === false) {
         this.positionals.push(arg)
@@ -414,11 +412,6 @@ class Data {
   }
 }
 
-function papa (name, ...args) {
-  const cmd = typeof name === 'string' ? command(name, ...args) : command(null, name, ...args)
-  return cmd.parse()
-}
-
 function argv () {
   return typeof process === 'undefined' ? global.Bare.argv.slice(2) : process.argv.slice(2)
 }
@@ -481,8 +474,8 @@ function unindent (info) {
   const indent = lines[0].match(/^(\s*)/)[1]
 
   let s = ''
-  for (const line of lines) s += line.slice(indent.length).trimRight() + '\n'
-  return s.trimRight()
+  for (const line of lines) s += line.slice(indent.length).trimEnd() + '\n'
+  return s.trimEnd()
 }
 
 function trimLine (line) {

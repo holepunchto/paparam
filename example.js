@@ -53,5 +53,5 @@ const app = command(
   }
 )
 
-app.parse(['-d', 'run', '--bare', 'pear://link', 'b'])
+app.parse(['run', 'pear://link'])
 app.help()
