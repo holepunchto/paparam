@@ -346,7 +346,7 @@ class Command {
     }
   }
 
-  _add_Runner (_runner) {
+  _addRunner (_runner) {
     this._runner = _runner
   }
 
@@ -495,7 +495,7 @@ function command (name, ...args) {
     } else if (a instanceof Data) {
       c._addData(a)
     } else if (typeof a === 'function') {
-      c._add_Runner(a)
+      c._addRunner(a)
     } else if (typeof a === 'object' && a?.constructor === Object) {
       c._addOpts(a)
     } else {
