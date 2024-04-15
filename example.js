@@ -54,4 +54,4 @@ const app = command(
 )
 
 app.parse(['-d', 'run', '--bare', 'pear://link', 'b'])
-console.log(app.usage())
+console.log(app.help())
