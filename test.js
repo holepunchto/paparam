@@ -368,6 +368,7 @@ test('Command overview full', (t) => {
   const expected = `
 Header text
 
+
 stage [flags] <link> [app-args...]
 
 stage pear app
