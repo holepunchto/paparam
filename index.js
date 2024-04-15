@@ -89,7 +89,7 @@ class Command {
     this.bailed = null
 
     this._runner = null
-    this._running = null
+    this.running = null
 
     this._delim = '-'
     this._strictFlags = true
@@ -119,7 +119,7 @@ class Command {
       else s += '  ' + this.name + ' ' + name + ' ' + this._delim + ' ' + command.summary + EOL
     }
 
-    if (this.footer) s += EOL + (this.footer.overview || this.footer) + EOL
+    if (this.footer) s += EOL + (Object.hasOwn(this.footer, 'overview') ? this.footer.overview : this.footer) + EOL
 
     return s
   }
@@ -131,7 +131,7 @@ class Command {
 
     s += this.usage(...args)
 
-    if (this.footer) s += EOL + (this.footer.help || this.footer) + EOL
+    if (this.footer) s += EOL + (Object.hasOwn(this.footer, 'help') ? this.footer.help : this.footer) + EOL
 
     return s
   }
@@ -196,7 +196,7 @@ class Command {
     }
 
     if (!bail) {
-      if (c._runner !== null) c._running = runAsync(c)
+      if (c._runner !== null) c.running = runAsync(c)
       return c
     }
 
@@ -355,7 +355,7 @@ class Command {
     this.args = {}
     this.positionals = []
     this.rest = null
-    this._running = null
+    this.running = null
 
     return this
   }
