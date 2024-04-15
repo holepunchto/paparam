@@ -5,7 +5,7 @@ const { header, command, flag, arg, argv, rest, footer, summary, description } =
 test('command creation', async (t) => {
   const cmd = command('test')
   t.plan(2)
-  t.is(cmd.name, 'test', 'Command name should be set correctly')
+  t.is(cmd.name, 'test')
   t.execution(() => cmd.parse([]))
 })
 
@@ -13,7 +13,7 @@ test('command with description', async (t) => {
   const desc = 'Test command description'
   const cmd = command('test', description(desc))
   t.plan(2)
-  t.is(cmd.description, desc, 'Command description should be set correctly')
+  t.is(cmd.description, desc)
   t.execution(() => cmd.parse([]))
 })
 
@@ -46,7 +46,7 @@ test('command with arguments', async (t) => {
 })
 
 test('command with rest arguments', async (t) => {
-  const cmd = command('test', arg('<arg>', 'Test argument'), rest('...rest', 'Test rest arguments'))
+  const cmd = command('test', arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'))
   cmd.parse(['val', 'some', 'more'])
   t.plan(3)
   t.is(cmd.args.arg, 'val')
@@ -58,14 +58,14 @@ test('command with header', async (t) => {
   const hd = 'Test command header'
   const cmd = command('test', header(hd))
   t.plan(1)
-  t.is(cmd.header, hd, 'Command header should be set correctly')
+  t.is(cmd.header, hd)
 })
 
 test('command with footer', async (t) => {
   const ft = 'Test command footer'
   const cmd = command('test', footer(ft))
   t.plan(1)
-  t.is(cmd.footer, ft, 'Command footer should be set correctly')
+  t.is(cmd.footer, ft)
 })
 
 test('command parsing', async (t) => {
@@ -74,7 +74,7 @@ test('command parsing', async (t) => {
   cmd.parse(input)
   t.plan(2)
   t.ok(cmd.flags.flag, 'Flag should be recognized and set')
-  t.is(cmd.args.arg, 'argumentValue', 'Argument should be recognized and its value set')
+  t.is(cmd.args.arg, 'argumentValue')
 })
 
 test('default error on unknown flag', (t) => {
@@ -185,7 +185,7 @@ test('command opts - delim (custom overview delimiter)', (t) => {
   const cmd = command(
     'test',
     command('sub', summary('A subcommand')),
-    { delim: ' -> ' } // Custom delimiter for the overview output
+    { delim: ' -> ' }
   )
   const expected = `  test sub  ->  A subcommand
 `
