@@ -287,7 +287,7 @@ test('Command overview', (t) => {
   const expected = `
 Header text
 
-  pear stage - stage pear app
+  pear stage ~ stage pear app
 
 Footer text
 `
