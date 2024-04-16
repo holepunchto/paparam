@@ -10,7 +10,9 @@ module.exports = {
   arg,
   rest,
   summary,
-  description
+  description,
+  sloppy,
+  bail
 }
 
 class Parser {
@@ -88,12 +90,18 @@ class Command {
     this.rest = null
     this.bailed = null
 
-    this._runner = null
     this.running = null
 
-    this._delim = '-'
+    this._runner = null
+    this._onbail = null
+
     this._strictFlags = true
     this._strictArgs = true
+    this._labels = {
+      arguments: 'Arguments:',
+      flags: 'Flags:',
+      commands: 'Commands:'
+    }
 
     this._definedCommands = new Map()
     this._definedFlags = new Map()
@@ -116,7 +124,7 @@ class Command {
     if (this.header) s += EOL + this.header + EOL + EOL
     for (const [name, command] of this._definedCommands) {
       if (full) s += (s === '' ? '' : EOL) + command.usage()
-      else s += '  ' + this.name + ' ' + name + ' ' + this._delim + ' ' + command.summary + EOL
+      else s += '  ' + this.name + ' ' + name + ' ~ ' + command.summary + EOL
     }
 
     if (this.footer) s += EOL + (Object.hasOwn(this.footer, 'overview') ? this.footer.overview : this.footer) + EOL
@@ -144,7 +152,7 @@ class Command {
     }
     let s = ''
 
-    s += this._signature(this._oneliner(false))
+    s += this._oneliner(false) + EOL
 
     if (this.summary) s += EOL + this.summary + EOL
 
@@ -226,11 +234,10 @@ class Command {
 
     if (this._definedArgs.length > 0 || this._definedRest !== null) {
       l.push(['', ''])
-      l.push([this._arguments, ''])
+      l.push([this._labels.arguments, ''])
       for (const arg of this._definedArgs) {
         l.push(['  ' + arg.help, arg.usage()])
       }
-      l.push([this._arguments, ''])
     }
 
     if (this._definedRest) {
@@ -239,23 +246,21 @@ class Command {
 
     if (this._definedFlags.size) {
       l.push(['', ''])
-      l.push([this._flags, ''])
+      l.push([this._labels.flags, ''])
       for (const flag of this._definedFlags.values()) {
         if (visited.has(flag)) continue
         visited.add(flag)
 
         l.push(['  ' + flag.help, flag.description])
       }
-      l.push([this._flags, ''])
     }
 
     if (this._definedCommands.size) {
       l.push(['', ''])
-      l.push([this._commands, ''])
+      l.push([this._labels.commands, ''])
       for (const c of this._definedCommands.values()) {
         l.push(['  ' + c._oneliner(true, true), c.description])
       }
-      l.push([this._commands, ''])
     }
 
     if (padding === 0) {
@@ -270,21 +275,8 @@ class Command {
     }
 
     let s = ''
-    let s2 = ''
-    let mapper = null
     for (const [left, right] of l) {
-      if (typeof left === 'function') {
-        if (mapper === left) {
-          s += mapper(s2)
-          s2 = ''
-          mapper = null
-        } else {
-          mapper = left
-        }
-        continue
-      }
-      if (mapper === null) s += (left.padEnd(padding, ' ') + '   ' + right).trimEnd() + EOL
-      else s2 += (left.padEnd(padding, ' ') + '   ' + right).trimEnd() + EOL
+      s += (left.padEnd(padding, ' ') + '   ' + right).trimEnd() + EOL
     }
 
     s = s.trimEnd()
@@ -294,17 +286,6 @@ class Command {
 
   _addCommand (c) {
     this._definedCommands.set(c.name, c)
-  }
-
-  _addOpts (o) {
-    this._strictFlags = !(o.sloppy?.flags)
-    this._strictArgs = !(o.sloppy?.args)
-    if (typeof o.signature === 'function') this._signature = o.signature
-    if (typeof o.bail === 'function') this._bail = o.bail
-    if (typeof o.commands === 'function') this._commands = o.commands
-    if (typeof o.arguments === 'function') this._arguments = o.arguments
-    if (typeof o.flags === 'function') this._flags = o.flags
-    if (o.delim) this._delim = o.delim
   }
 
   _addFlag (f) {
@@ -323,6 +304,11 @@ class Command {
 
   _addData (d) {
     switch (d.type) {
+      case 'bail': {
+        if (this._onbail !== null) throw new Error('onbail already set')
+        this._onbail = d.value
+        break
+      }
       case 'name': {
         this.name = d.value
         break
@@ -341,6 +327,11 @@ class Command {
       }
       case 'footer': {
         this.footer = unindent(d.value)
+        break
+      }
+      case 'sloppy': {
+        this._strictFlags = !(d.value?.flags)
+        this._strictArgs = !(d.value?.args)
         break
       }
     }
@@ -421,15 +412,8 @@ class Command {
     return null
   }
 
-  _signature (s) { return s + EOL }
-
-  _arguments (s) { return 'Arguments:' + EOL + s }
-
-  _flags (s) { return 'Flags:' + EOL + s }
-
-  _commands (s) { return 'Commands:' + EOL + s }
-
   _bail (bail) {
+    if (typeof this._onbail === 'function') return this._onbail(bail)
     if (bail.flag) throw new Error(bail.reason + ': ' + bail.flag.name)
     if (bail.arg) throw new Error(bail.reason + ': ' + bail.arg.value)
     throw new Error(bail.reason)
@@ -496,14 +480,20 @@ function command (name, ...args) {
       c._addData(a)
     } else if (typeof a === 'function') {
       c._addRunner(a)
-    } else if (typeof a === 'object' && a?.constructor === Object) {
-      c._addOpts(a)
     } else {
       throw new Error('Unknown arg: ' + a)
     }
   }
 
   return c
+}
+
+function bail (fn) {
+  return new Data('bail', fn)
+}
+
+function sloppy (opts) {
+  return new Data('sloppy', opts)
 }
 
 function summary (desc) {

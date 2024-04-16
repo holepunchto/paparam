@@ -1,6 +1,6 @@
 'use strict'
 const test = require('brittle')
-const { header, command, flag, arg, argv, rest, footer, summary, description } = require('./')
+const { header, command, flag, arg, argv, rest, footer, summary, description, sloppy, bail } = require('./')
 
 test('command creation', async (t) => {
   const cmd = command('test')
@@ -103,7 +103,7 @@ test('command opts - flags sloppy mode, no bail on unknown string flag', (t) => 
     'stage',
     flag('--dry-run', 'Performs a dry run'),
     arg('<link>', 'App link key'),
-    { sloppy: { flags: true } }
+    sloppy({ flags: true })
   )
   const input = ['--unknown-flag', 'val']
   t.plan(1)
@@ -115,7 +115,7 @@ test('command opts - flags sloppy mode, WILL bail on invalid unknown boolean fla
     'stage',
     flag('--dry-run', 'Performs a dry run'),
     arg('<link>', 'App link key'),
-    { sloppy: { flags: true } }
+    sloppy({ flags: true })
   )
   const input = ['--unknown-flag']
   t.plan(1)
@@ -127,7 +127,7 @@ test('command opts - args sloppy mode, no bail on unknown', (t) => {
     'stage',
     flag('--dry-run', 'Performs a dry run'),
     arg('<link>', 'App link key'),
-    { sloppy: { args: true } }
+    sloppy({ args: true })
   )
   const input = ['linkarg', 'extraarg']
   t.plan(2)
@@ -135,27 +135,12 @@ test('command opts - args sloppy mode, no bail on unknown', (t) => {
   t.is(cmd.positionals[1], 'extraarg')
 })
 
-test('command opts - signature (custom function)', (t) => {
-  const cmd = command(
-    'test',
-    { signature: (s) => `CUSTOM: ${s} WRAP` }
-  )
-
-  const expected = 'CUSTOM: test WRAP'
-  const output = cmd.usage()
-  t.plan(1)
-  t.is(output, expected)
-})
-
 test('command opts - bail (custom function, non-throwing)', (t) => {
   const cmd = command(
     'test',
     flag('--required', 'A required flag'),
-    { bail }
+    bail((bail) => `error happened: ${bail.reason}\n${cmd.usage()}`)
   )
-  function bail (bail) {
-    return `error happened: ${bail.reason}\n${cmd.usage()}`
-  }
 
   const input = ['--unknown-flag']
   const expected = `error happened: UNKNOWN_FLAG
@@ -173,24 +158,12 @@ test('command opts - bail (custom function, throwing)', (t) => {
   const cmd = command(
     'test',
     flag('--required', 'A required flag'),
-    { bail () { throw new Error('bAiL') } }
+    bail(() => { throw new Error('bAiL') })
   )
   const input = ['--unknown-flag']
   t.plan(2)
   t.exception(() => cmd.parse(input))
   t.is(cmd.bailed.error.message, 'bAiL')
-})
-
-test('command opts - delim (custom overview delimiter)', (t) => {
-  const cmd = command(
-    'test',
-    command('sub', summary('A subcommand')),
-    { delim: ' -> ' }
-  )
-  const expected = `  test sub  ->  A subcommand
-`
-  t.plan(1)
-  t.is(cmd.overview(), expected)
 })
 
 test('command composition w/ runner ', (t) => {
@@ -288,28 +261,6 @@ test('command parse argv defaults to program argv', (t) => {
   const injected = ['program', 'entry', '--dry-run', '--bare', 'pear://example', 'app', 'args']
   program.argv = injected
   cmd.parse()
-})
-
-test('command option - commands (custom function)', (t) => {
-  const cmd = command(
-    'sub',
-    summary('A subcommand'),
-    description('Description of subcommand')
-  )
-
-  const app = command(
-    'main',
-    cmd,
-    { commands: (s) => `Available Commands:\n${s}` }
-  )
-
-  const expected = `main [command]
-
-Available Commands:
-  sub   Description of subcommand
-`
-
-  t.is(app.usage(), expected)
 })
 
 test('Command overview', (t) => {
