@@ -1,6 +1,5 @@
 name: Build Status
 on:
-on:
   push:
     branches:
       - main
