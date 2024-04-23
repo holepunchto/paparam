@@ -4,13 +4,17 @@
   "description": "Strict and fair parameter papa",
   "main": "index.js",
   "scripts": {
-    "test": "standard"
+    "test": "brittle test.js",
+    "lint": "standard"
   },
   "devDependencies": {
+    "brittle": "^3.5.0",
     "standard": "^17.1.0"
   },
   "standard": {
-    "globals": ["Bare"]
+    "globals": [
+      "Bare"
+    ]
   },
   "repository": {
     "type": "git",

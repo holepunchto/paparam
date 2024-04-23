@@ -2,10 +2,8 @@ name: Build Status
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
-    branches:
-      - master
 jobs:
   build:
     strategy:
