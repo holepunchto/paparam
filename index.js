@@ -352,13 +352,7 @@ class Command {
   }
 
   _addRunner (_runner) {
-    this._runner = (c) => {
-      if (c.flags.help) {
-        console.log(c.command.help())
-        return
-      }
-      return _runner(c)
-    }
+    this._runner = _runner
   }
 
   _reset () {
@@ -614,5 +608,9 @@ function defaultFlag (name) {
 }
 
 async function runAsync (c) {
+  if (c.flags.help) {
+    console.log(c.command.help())
+    return
+  }
   await c._runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, command: c })
 }
