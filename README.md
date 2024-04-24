@@ -123,10 +123,10 @@ After `cmd.parse` has been called, contains parsed arguments.
 
 After `cmd.parse` has been called, contains original arguments in isolation.
 
-#### `cmd.rest` `Array`
+#### `cmd.rest` `Object`
 
-After `cmd.parse` has been called, contains rest arguments if any.
-
+After `cmd.parse` has been called, contains rest arguments, if any, on `cmd.rest.restName` where `restName` is defined
+by `rest(spec)` where `spec` is `[..rest-name]`.
 
 #### `cmd.parent`
 
