@@ -109,7 +109,7 @@ Either `null` if the command is not running or a promise that resolves when the 
 #### `cmd.bailed` `Object|null`
 
 Either `null` if the command did not bail or an object descibing the bail. The object can be `{ bail <Object>, error <Error>?, output <String>? }`. If the object has an `error` property it failed to create the bail output (which could happen with a user defined bail function),
-otherwise the object has an `output` property which explains the reason for the bail. The `bail` property of the `bailed` object contains the `{ reason <String>, flag <Flag>, arg <Arg>}`
+otherwise the object has an `output` property which explains the reason for the bail. The `bail` property of the `bailed` object has the following shape: `{ reason <String>, flag <Flag>, arg <Arg>}`.
 
 #### `cmd.flags` `Object`
 
