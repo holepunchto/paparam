@@ -125,9 +125,9 @@ class Command {
 
     for (const [name, command] of this._definedCommands) {
       if (full) {
-        command.indent = this.header ? '  ' : ''
+        command._indent = this.header ? '  ' : ''
         s += command.usage()
-        command.indent = ''
+        command._indent = ''
       } else s += '  ' + this.name + ' ' + name + ' ~ ' + command.summary + EOL
     }
 
@@ -237,11 +237,11 @@ class Command {
     const indent = this._indent
     if (this.summary) {
       l.push(['', ''])
-      l.push(...this.summary.split(EOL).map((line) => [this.indent + line, '']))
+      l.push(...this.summary.split(EOL).map((line) => [this._indent + line, '']))
     }
     if (this.description) {
       l.push(['', ''])
-      l.push(...this.description.split(EOL).map((line) => [this.indent + line, '']))
+      l.push(...this.description.split(EOL).map((line) => [this._indent + line, '']))
     }
 
     if (this._definedArgs.length > 0 || this._definedRest !== null) {
