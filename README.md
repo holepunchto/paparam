@@ -74,18 +74,18 @@ ACTION -> run pear://link with store /path/to/store
 Defines a command with a specific behavior based on the supplied modifiers such as flags, arguments, and descriptions. This function is used to create the command object.
 
 - **Arguments**:
-  - `name` (string): The name of the command.
-  - `...args` (Modifier | Command | Function): Supply modifiers and subcommands as arguments. Supply a single function argument as the command runner.
+  - `name` `<String>`: The name of the command.
+  - `...args` `<Modifier> | <Command> | <Function>`: Supply modifiers and subcommands as arguments. Supply a single function argument as the command runner.
 
 - **Returns**:
-  - `cmd` (Command): The command object capable of parsing CLI arguments and executing associated actions.
+  - `cmd` `<Command>`: The command object capable of parsing CLI arguments and executing associated actions.
 
 #### `cmd.parse(argv = process.argv.slice(2))`
 
 Parses an array of command line arguments and executes the command based on the provided definition. Automatically handles '--help' or '-h' flags to display help information.
 
 - **Arguments**:
-  - `argv` (string[]): An array of strings representing the command line arguments. Defaults to program arguments `process.argv.slice(2)` if unspecified. If the `-h` or `--help` flag is supplied help for the related command will be shown.
+  - `argv` `<String[]>`: An array of strings representing the command line arguments. Defaults to program arguments `process.argv.slice(2)` if unspecified. If the `-h` or `--help` flag is supplied help for the related command will be shown.
 
 - **Returns**:
   - `null` if the parsing leads to an error (with an error output) or the command object if the command executes without errors.
@@ -101,6 +101,9 @@ Returns help text without header or footer. Can take subcommand names as argumen
 #### `cmd.overview({ full = false })`
 
 Returns a string with a command overview. Set `full` to `true` to include detailed usage for each command.
+
+- **Arguments**:
+  - `full` `<Boolean>`: Whether to display a full overview that includes details of all defined sub-commands and flags.
 
 #### `cmd.running` `Promise|null`
 
@@ -128,105 +131,102 @@ After `cmd.parse` has been called, contains original arguments in isolation.
 After `cmd.parse` has been called, contains rest arguments, if any, on `cmd.rest.restName` where `restName` is defined
 by `rest(spec)` where `spec` is `[..rest-name]`.
 
-#### `cmd.parent`
+#### `cmd.parent` `<Command>`
 
 Command parent
 
-#### `cmd.name`
+#### `cmd.name` `<String>`
 
 Command name
 
-#### `cmd.description`
+#### `cmd.description` `<String>`
 
 Command description
 
-#### `cmd.summary`
+#### `cmd.summary` `<String>`
 
 Command summary
 
-#### `cmd.header`
+#### `cmd.header` `<String>`
 
 Command header
 
-#### `cmd.footer`
+#### `cmd.footer` `<String> | <Object>`
 
 Command footer
-
-- **Arguments**:
-  - `full` (boolean): Whether to display a full overview that includes details of all defined sub-commands and flags.
 
 ### `flag(spec, description)`
 
 Defines a flag for a command. Flags can be simple boolean switches or can expect a value.
 
 - **Arguments**:
-  - `spec` (string): `--long|-l (<value> | [value])?` , e.g., `--verbose|-v`, `--output [file]`, `--required <flag>`
-  - `description` (string): A description of what the flag does.
+  - `spec` `<String>`: `--long|-l (<value> | [value])?` , e.g., `--verbose|-v`, `--output [file]`, `--required <flag>`
+  - `description` `<String>`: A description of what the flag does.
 
 - **Returns**:
-  - `Flag`: A modifier that configures the command to recognize and handle the specified flag.
+  - `<Flag>`: A modifier that configures the command to recognize and handle the specified flag.
 
 ### `arg(spec, description)`
 
 Defines a positional argument for a command.
 
 - **Arguments**:
-  - `spec` (string): `[arg] | <arg>` where arg is the placeholder name for the argument, e.g. `<name>`, (required) `[dir]` (optional)
-  - `description` (string): A description of what the argument is for.
+  - `spec` `<String>`: `[arg] | <arg>` where arg is the placeholder name for the argument, e.g. `<name>`, (required) `[dir]` (optional)
+  - `description` `<String>`: A description of what the argument is for.
 
 - **Returns**:
-  - `Arg`: A modifier that configures the command to accept and process the specified argument.
+  - `<Arg>`: A modifier that configures the command to accept and process the specified argument.
 
 ### `rest(spec, description)`
 
 Defines rest arguments that are captured after all flags and named arguments.
 
 - **Arguments**:
-  - `spec` (string): `[...rest-name]`. The name to collect rest arguments under, e.g. `[...app-args]` array will be stored at `cmd.rest.appArgs`.
-  - `description` (string): Description of what these rest arguments represent.
+  - `spec` `<String>`: `[...rest-name]`. The name to collect rest arguments under, e.g. `[...app-args]` array will be stored at `cmd.rest.appArgs`.
+  - `description` `<String>`: Description of what these rest arguments represent.
 
 - **Returns**:
-  - `Rest`: A modifier that configures the command to capture additional arguments not explicitly defined.
+  - `<Rest>`: A modifier that configures the command to capture additional arguments not explicitly defined.
 
 ### `summary(text)`
 
 Defines a brief summary of the command's functionality.
 
 - **Arguments**:
-  - `text` (string): Summary of the command's purpose.
+  - `text` `<String>`: Summary of the command's purpose.
 
 - **Returns**:
-  - `Data`: A modifier containing the summary information.
+  - `<Data>`: A modifier containing the summary information.
 
 ### `description(text)`
 
 Defines a detailed description of the command's functionality.
 
 - **Arguments**:
-  - `text` (string): Detailed information about the command.
+  - `text` `<String>`: Detailed information about the command.
 
 - **Returns**:
-  - `Data`: A modifier containing the description information.
+  - `<Data>`: A modifier containing the description information.
 
 ### `header(text)`
 
 Define a header for the command's help output.
 
 - **Arguments**:
-  - `text` (string): Text to display at the top of the output.
+  - `text` `<String>`: Text to display at the top of the output.
 
 - **Returns**:
-  - `Data`: A modifier that configures the header text.
+  - `<Data>`: A modifier that configures the header text.
 
-### `footer(text)`
+### `footer(text | { overview: text, help: text })`
 
-Define a footer for the command's help output.
+Define a footer for the command's help & overview output.
 
 - **Arguments**:
-  - `text` (string): Text to display at the bottom of the output.
+  - `text` `<String>`: Text to display at the bottom of the output.
 
 - **Returns**:
-  - `Data`: A modifier that configures the footer text.
+  - `<Data>`: A modifier that configures the footer text.
 
 ### `bail(fn)`
 
