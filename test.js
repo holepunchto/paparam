@@ -148,6 +148,7 @@ test [flags]
 
 Flags:
   --required   A required flag
+  --help|-h    print help
 `
   t.plan(2)
   t.is(cmd.parse(input), null)
@@ -319,20 +320,20 @@ test('Command overview full', (t) => {
   const expected = `
 Header text
 
+  stage [flags] <link> [app-args...]
 
-stage [flags] <link> [app-args...]
+  stage pear app
 
-stage pear app
+  more info about staging pear app
 
-more info about staging pear app
+  Arguments:
+    <link>         App link key
+  [app-args...]    Any args passed after the link are passed to the app
 
-Arguments:
-  <link>          App link key
-  [app-args...]   Any args passed after the link are passed to the app
-
-Flags:
-  --dry-run|-d    View the changes without applying them
-  --bare          Do not apply any warmup
+  Flags:
+    --dry-run|-d   View the changes without applying them
+    --bare         Do not apply any warmup
+    --help|-h      print help
 
 Footer text
 `
@@ -368,6 +369,7 @@ Arguments:
 Flags:
   --dry-run|-d    View the changes without applying them
   --bare          Do not apply any warmup
+  --help|-h       print help
 `
   t.plan(1)
   t.is(cmd.usage(), expected)
@@ -390,7 +392,21 @@ test('Command help', (t) => {
 
   const expected = `Header text
 
-${cmd.usage()}
+  stage [flags] <link> [app-args...]
+
+  stage pear app
+
+  more info about staging pear app
+
+  Arguments:
+    <link>         App link key
+  [app-args...]    Any args passed after the link are passed to the app
+
+  Flags:
+    --dry-run|-d   View the changes without applying them
+    --bare         Do not apply any warmup
+    --help|-h      print help
+
 Footer text
 `
   t.plan(1)
@@ -432,6 +448,7 @@ Arguments:
 Flags:
   --dry-run|-d    View the changes without applying them
   --bare          Do not apply any warmup
+  --help|-h       print help
 `
   t.plan(1)
   t.is(app.usage('stage'), expected)
@@ -472,6 +489,7 @@ Arguments:
 Flags:
   --dry-run|-d    View the changes without applying them
   --bare          Do not apply any warmup
+  --help|-h       print help
 `
   t.plan(1)
   t.is(app.usage('stage'), expected)
@@ -548,31 +566,34 @@ more info about staging pear app
 Flags:
   --dry-run|-d   View the changes without applying them
   --bare         Do not apply any warmup
+  --help|-h      print help
 
 Commands:
-  sub
+  sub            subcmd
 `
   const expectedOverview = `
 Header text
 
+  another [flags] <reqd> [optl]
 
-another <reqd> [optl]
+  Arguments:
+    <reqd> [optl]
 
-Arguments:
-  <reqd> [optl]
+  Flags:
+    --help|-h   print help
+  stage [flags] [command]
 
-stage [flags] [command]
+  stage pear app
 
-stage pear app
+  more info about staging pear app
 
-more info about staging pear app
+  Flags:
+    --dry-run|-d   View the changes without applying them
+    --bare         Do not apply any warmup
+    --help|-h      print help
 
-Flags:
-  --dry-run|-d   View the changes without applying them
-  --bare         Do not apply any warmup
-
-Commands:
-  sub
+  Commands:
+    sub            subcmd
 
 Footer text
 `
