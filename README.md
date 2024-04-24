@@ -104,28 +104,28 @@ Returns a string with a command overview. Set `full` to `true` to include detail
 - **Arguments**:
   - `full` `<Boolean>`: Whether to display a full overview that includes details of all defined sub-commands and flags.
 
-#### `cmd.running` `Promise|null`
+#### `cmd.running` `<Promise>|null`
 
 Either `null` if the command is not running or a promise that resolves when the command has completed running.
 
-#### `cmd.bailed` `Object|null`
+#### `cmd.bailed` `<Object>|null`
 
 Either `null` if the command did not bail or an object descibing the bail. The object can be `{ bail <Object>, error <Error>?, output <String>? }`. If the object has an `error` property it failed to create the bail output (which could happen with a user defined bail function),
 otherwise the object has an `output` property which explains the reason for the bail. The `bail` property of the `bailed` object has the following shape: `{ reason <String>, flag <Flag>, arg <Arg>}`.
 
-#### `cmd.flags` `Object`
+#### `cmd.flags` `<Object>`
 
 After `cmd.parse` has been called, contains parsed flag values.
 
-#### `cmd.args` `Object`
+#### `cmd.args` `<Object>`
 
 After `cmd.parse` has been called, contains parsed arguments.
 
-#### `cmd.positionals` `Array`
+#### `cmd.positionals` `<Array>`
 
 After `cmd.parse` has been called, contains original arguments in isolation.
 
-#### `cmd.rest` `Object`
+#### `cmd.rest` `<Object>`
 
 After `cmd.parse` has been called, contains rest arguments, if any, on `cmd.rest.restName` where `restName` is defined
 by `rest(spec)` where `spec` is `[..rest-name]`.
