@@ -1,6 +1,6 @@
 'use strict'
 const EOL = '\n'
-
+const noop = () => {}
 module.exports = {
   command,
   header,
@@ -94,7 +94,7 @@ class Command {
 
     this._runner = null
     this._onbail = null
-
+    this._indent = ''
     this._strictFlags = true
     this._strictArgs = true
     this._labels = {
@@ -122,9 +122,13 @@ class Command {
   overview ({ full = false } = {}) {
     let s = ''
     if (this.header) s += EOL + this.header + EOL + EOL
+
     for (const [name, command] of this._definedCommands) {
-      if (full) s += (s === '' ? '' : EOL) + command.usage()
-      else s += '  ' + this.name + ' ' + name + ' ~ ' + command.summary + EOL
+      if (full) {
+        command.indent = this.header ? '  ' : ''
+        s += command.usage()
+        command.indent = ''
+      } else s += '  ' + this.name + ' ' + name + ' ~ ' + command.summary + EOL
     }
 
     if (this.footer) s += EOL + (Object.hasOwn(this.footer, 'overview') ? this.footer.overview : this.footer) + EOL
@@ -137,7 +141,9 @@ class Command {
 
     if (this.header) s += this.header + EOL + EOL
 
+    this._indent = this.header ? '  ' : ''
     s += this.usage(...args)
+    this._indent = ''
 
     if (this.footer) s += EOL + (Object.hasOwn(this.footer, 'help') ? this.footer.help : this.footer) + EOL
 
@@ -150,13 +156,10 @@ class Command {
       if (!sub) return this.bail(createBail('UNKNOWN_ARG', null, { value: subcommand }))
       return sub.usage(...args)
     }
+
     let s = ''
 
-    s += this._oneliner(false) + EOL
-
-    if (this.summary) s += EOL + this.summary + EOL
-
-    if (this.description) s += EOL + this.description + EOL
+    s += this._indent + this._oneliner(false) + EOL
 
     s += this._aligned()
 
@@ -231,12 +234,21 @@ class Command {
   _aligned (padding = 0, color = false) {
     const l = []
     const visited = new Set()
+    const indent = this._indent
+    if (this.summary) {
+      l.push(['', ''])
+      l.push(...this.summary.split(EOL).map((line) => [this.indent + line, '']))
+    }
+    if (this.description) {
+      l.push(['', ''])
+      l.push(...this.description.split(EOL).map((line) => [this.indent + line, '']))
+    }
 
     if (this._definedArgs.length > 0 || this._definedRest !== null) {
       l.push(['', ''])
-      l.push([this._labels.arguments, ''])
+      l.push([indent + this._labels.arguments, ''])
       for (const arg of this._definedArgs) {
-        l.push(['  ' + arg.help, arg.usage()])
+        l.push([indent + '  ' + arg.help, arg.usage()])
       }
     }
 
@@ -246,20 +258,20 @@ class Command {
 
     if (this._definedFlags.size) {
       l.push(['', ''])
-      l.push([this._labels.flags, ''])
+      l.push([indent + this._labels.flags, ''])
       for (const flag of this._definedFlags.values()) {
         if (visited.has(flag)) continue
         visited.add(flag)
 
-        l.push(['  ' + flag.help, flag.description])
+        l.push([indent + '  ' + flag.help, flag.description])
       }
     }
 
     if (this._definedCommands.size) {
       l.push(['', ''])
-      l.push([this._labels.commands, ''])
+      l.push([indent + this._labels.commands, ''])
       for (const c of this._definedCommands.values()) {
-        l.push(['  ' + c._oneliner(true, true), c.description])
+        l.push([indent + '  ' + c._oneliner(true, true), c.summary || c.description])
       }
     }
 
@@ -285,6 +297,8 @@ class Command {
   }
 
   _addCommand (c) {
+    if (!c.header) c.header = this.header
+    if (!c.footer) c.footer = this.footer
     this._definedCommands.set(c.name, c)
   }
 
@@ -338,7 +352,13 @@ class Command {
   }
 
   _addRunner (_runner) {
-    this._runner = _runner
+    this._runner = (c) => {
+      if (c.flags.help) {
+        console.log(c.command.help())
+        return
+      }
+      return _runner(c)
+    }
   }
 
   _reset () {
@@ -466,7 +486,6 @@ function argv () {
 
 function command (name, ...args) {
   const c = new Command(null, name)
-
   for (const a of args) {
     if (a instanceof Command) {
       c._addCommand(a)
@@ -484,7 +503,8 @@ function command (name, ...args) {
       throw new Error('Unknown arg: ' + a)
     }
   }
-
+  c._addFlag(new Flag('--help|-h', 'print help'))
+  if (!c._runner) c._addRunner(noop)
   return c
 }
 

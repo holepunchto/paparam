@@ -1,57 +1,14 @@
-const { header, command, flag, arg, rest, footer, description } = require('./')
-
-const head = header(`
-  Welcome to the Internet of Pears.
-
-  v0.2967.kpzdysqu3uqu3nz7xakidqb1ju71jbzaszxu58r3owodbujyghuy
-`)
-
-const foot = footer(`
-  Always share feedback with us on keet, enjoy!
-`)
-
+const { header, footer, command, flag, arg, summary, description, rest } = require('./')
 const run = command(
   'run',
-  description('run any pear app'),
-  head,
-  flag('-d, --dry-run', 'View the changes without applying them'),
-  flag('--bare', 'Do not apply any warmup'),
-  arg('<link>', 'Link to the app'),
-  rest('[app-args...]', 'Any args passed after the link are passed to the app'),
-  foot,
-  async function (args) {
-    console.log('run the run app', args)
-  }
+  summary('Run an app from a link'),
+  description('Run an app from a file link (or path) or from a pear link.\nOptionally supply store for custom store path'),
+  flag('--store|-s [path]', 'store path'),
+  arg('<link>', 'link to run'),
+  rest('[...app-args]'),
+  () => console.log('ACTION ->', 'run', run.args.link, 'with store', run.flags.store)
 )
-
-const stage = command(
-  'stage',
-  description('stage your local files into a pear app'),
-  head,
-  flag('-d, --dry-run', 'View the changes without applying them'),
-  flag('--bare', 'Do not apply any warmup'),
-  arg('<channel|key>', 'Which channel or key are we staging into?'),
-  rest('[dir]', 'Specify dir'),
-  footer(`
-    Always share feedback with us on keet, enjoy!
-  `),
-  async function () {
-    console.log('run the app')
-  }
-)
-
-const app = command(
-  'pear',
-  head,
-  flag('-d, --dry-run', 'View the changes without applying them'),
-  flag('--bare', 'Do not apply any warmup'),
-  run,
-  stage,
-  foot,
-  async function () {
-    console.log('run the app')
-  }
-)
-
-app.parse(['-d', 'run', '--bare', 'pear://link', 'b'])
-console.log(app.help())
+const cmd = command('pear', summary('pear cli'), header('Welcome to the IoP'), footer('holepunch.to | pears.com | keet.io'), run)
+cmd.parse(['--help']) // print pear help
+cmd.parse(['run', '-h']) // print run help
+cmd.parse(['run', '-s', '/path/to/store', 'pear://link']) // exec run command
