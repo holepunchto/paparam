@@ -104,11 +104,11 @@ Returns a string with a command overview. Set `full` to `true` to include detail
 - **Arguments**:
   - `full` `<Boolean>`: Whether to display a full overview that includes details of all defined sub-commands and flags.
 
-#### `cmd.running` `<Promise>|null`
+#### `cmd.running` `<Promise> | null`
 
 Either `null` if the command is not running or a promise that resolves when the command has completed running.
 
-#### `cmd.bailed` `<Object>|null`
+#### `cmd.bailed` `<Object> | null`
 
 Either `null` if the command did not bail or an object descibing the bail. The object can be `{ bail <Object>, error <Error>?, output <String>? }`. If the object has an `error` property it failed to create the bail output (which could happen with a user defined bail function),
 otherwise the object has an `output` property which explains the reason for the bail. The `bail` property of the `bailed` object has the following shape: `{ reason <String>, flag <Flag>, arg <Arg>}`.
@@ -222,7 +222,7 @@ Define a header for the command's help output.
 Define a footer for the command's help & overview output.
 
 - **Arguments**:
-  - `text` `<String>`: Text to display at the bottom of the output.
+  - `text` `<String> | { overview: text <String>, help: text <String> }`| : Text to display at the bottom of the help and/or overview output.
 
 - **Returns**:
   - `<Data>`: A modifier that configures the footer text.
