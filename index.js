@@ -609,7 +609,7 @@ function defaultFlag (name) {
 
 async function runAsync (c) {
   if (c.flags.help) {
-    console.log(c.command.help())
+    console.log(c.help())
     return
   }
   await c._runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, command: c })
