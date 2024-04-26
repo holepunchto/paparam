@@ -54,6 +54,28 @@ test('command with rest arguments', async (t) => {
   t.alike(cmd.rest, ['some', 'more'])
 })
 
+test('command with flags, rest arguments but no args', async (t) => {
+  const cmd = command('test', flag('-l', 'test flag'), rest('...rest', 'rest arguments'))
+  cmd.parse(['-l', 'val', 'some', 'more'])
+  t.plan(2)
+  t.ok(cmd.flags.l)
+  t.alike(cmd.rest, ['val', 'some', 'more'])
+})
+
+test('command with flags & rest arguments swallows flags after first rest arg', async (t) => {
+  const cmd = command(
+    'test',
+    flag('--flag', 'Test argument'),
+    flag('--other', 'Other Test argument'),
+    rest('...rest', 'rest arguments')
+  )
+  cmd.parse(['--flag', 'val', 'some', 'more', '--other'])
+  t.plan(3)
+  t.ok(cmd.flags.flag)
+  t.ok(!cmd.flags.other)
+  t.alike(cmd.rest, ['val', 'some', 'more', '--other'])
+})
+
 test('command with header', async (t) => {
   const hd = 'Test command header'
   const cmd = command('test', header(hd))
