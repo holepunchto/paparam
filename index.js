@@ -262,8 +262,7 @@ class Command {
       for (const flag of this._definedFlags.values()) {
         if (visited.has(flag)) continue
         visited.add(flag)
-
-        l.push([indent + '  ' + flag.help, flag.description])
+        if (!flag.internal) l.push([indent + '  ' + flag.help, flag.description])
       }
     }
 
@@ -435,13 +434,14 @@ class Command {
 }
 
 class Flag {
-  constructor (help, description = '') {
-    const { longName, shortName, aliases, boolean } = parseFlag(help)
+  constructor (spec, description = '') {
+    const { longName, shortName, aliases, boolean, internal, help } = parseFlag(spec)
     this.name = snakeToCamel(longName || shortName)
     this.aliases = aliases
     this.boolean = boolean
     this.help = help
     this.description = description
+    this.internal = internal
   }
 }
 
@@ -526,8 +526,8 @@ function footer (desc) {
   return new Data('footer', desc)
 }
 
-function flag (help, description) {
-  return new Flag(help, description)
+function flag (help, description, hidden = false) {
+  return new Flag(help, description, hidden)
 }
 
 function rest (help, description) {
@@ -559,8 +559,10 @@ function snakeToCamel (name) {
 }
 
 function parseFlag (help) {
+  const internal = help.startsWith('#-')
+  if (internal) help = help.slice(1)
   const parts = help.split(/[| ]/)
-  const result = { longName: null, shortName: null, aliases: [], boolean: true }
+  const result = { longName: null, shortName: null, aliases: [], boolean: true, internal, help }
 
   for (const p of parts) {
     if (p.startsWith('--')) {

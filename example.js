@@ -4,7 +4,7 @@ const run = command(
   summary('Run an app from a link'),
   description('Run an app from a file link (or path) or from a pear link.\nOptionally supply store for custom store path'),
   flag('--store|-s [path]', 'store path'),
-  arg('<link>', 'link to run'),
+  arg('<link|channel>', 'link to run'),
   rest('[...app-args]'),
   () => console.log('ACTION ->', 'run', run.args.link, 'with store', run.flags.store)
 )

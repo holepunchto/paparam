@@ -413,6 +413,44 @@ Footer text
   t.is(cmd.help(), expected)
 })
 
+test('internal flag', (t) => {
+  const head = header('Header text')
+  const foot = footer('Footer text')
+  const cmd = command(
+    'stage',
+    summary('stage pear app'),
+    description('more info about staging pear app'),
+    head,
+    flag('--dry-run|-d', 'View the changes without applying them'),
+    flag('#--bare'),
+    arg('<link>', 'App link key'),
+    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    foot
+  )
+
+  const expected = `Header text
+
+  stage [flags] <link> [app-args...]
+
+  stage pear app
+
+  more info about staging pear app
+
+  Arguments:
+    <link>         App link key
+  [app-args...]    Any args passed after the link are passed to the app
+
+  Flags:
+    --dry-run|-d   View the changes without applying them
+    --help|-h      print help
+
+Footer text
+`
+  t.plan(2)
+  t.is(cmd.help(), expected)
+  t.is(cmd.parse(['--bare']).flags.bare, true)
+})
+
 test('Command usage subcommand', (t) => {
   const head = header('Header text')
   const foot = footer('Footer text')
