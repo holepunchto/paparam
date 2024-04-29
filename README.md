@@ -165,6 +165,17 @@ Defines a flag for a command. Flags can be simple boolean switches or can expect
 - **Returns**:
   - `<Flag>`: A modifier that configures the command to recognize and handle the specified flag.
 
+### `hiddenFlag(spec, description)`
+
+Defines a hidden flag for a command, the flag is functional but will not show in help output.
+
+- **Arguments**:
+  - `spec` `<String>`: `--long|-l (<value> | [value])?` , e.g., `--verbose|-v`, `--output [file]`, `--required <flag>`
+  - `description` `<String>`: A description of what the flag does.
+
+- **Returns**:
+  - `<Flag>`: A modifier that configures the command to recognize and handle the specified flag.
+
 ### `arg(spec, description)`
 
 Defines a positional argument for a command.
