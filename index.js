@@ -7,6 +7,7 @@ module.exports = {
   footer,
   argv,
   flag,
+  hiddenFlag,
   arg,
   rest,
   summary,
@@ -262,7 +263,7 @@ class Command {
       for (const flag of this._definedFlags.values()) {
         if (visited.has(flag)) continue
         visited.add(flag)
-        if (!flag.internal) l.push([indent + '  ' + flag.help, flag.description])
+        if (!flag.hidden) l.push([indent + '  ' + flag.help, flag.description])
       }
     }
 
@@ -434,14 +435,14 @@ class Command {
 }
 
 class Flag {
-  constructor (spec, description = '') {
-    const { longName, shortName, aliases, boolean, internal, help } = parseFlag(spec)
+  constructor (spec, description = '', hidden) {
+    const { longName, shortName, aliases, boolean, help } = parseFlag(spec)
     this.name = snakeToCamel(longName || shortName)
     this.aliases = aliases
     this.boolean = boolean
     this.help = help
     this.description = description
-    this.internal = internal
+    this.hidden = hidden
   }
 }
 
@@ -526,8 +527,12 @@ function footer (desc) {
   return new Data('footer', desc)
 }
 
-function flag (help, description, hidden = false) {
-  return new Flag(help, description, hidden)
+function hiddenFlag (help, description) {
+  return new Flag(help, description, true)
+}
+
+function flag (help, description) {
+  return new Flag(help, description, false)
 }
 
 function rest (help, description) {
@@ -559,10 +564,8 @@ function snakeToCamel (name) {
 }
 
 function parseFlag (help) {
-  const internal = help.startsWith('#-')
-  if (internal) help = help.slice(1)
   const parts = help.split(/[| ]/)
-  const result = { longName: null, shortName: null, aliases: [], boolean: true, internal, help }
+  const result = { longName: null, shortName: null, aliases: [], boolean: true, help }
 
   for (const p of parts) {
     if (p.startsWith('--')) {

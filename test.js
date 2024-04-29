@@ -1,6 +1,6 @@
 'use strict'
 const test = require('brittle')
-const { header, command, flag, arg, argv, rest, footer, summary, description, sloppy, bail } = require('./')
+const { header, command, flag, hiddenFlag, arg, argv, rest, footer, summary, description, sloppy, bail } = require('./')
 
 test('command creation', async (t) => {
   const cmd = command('test')
@@ -413,7 +413,7 @@ Footer text
   t.is(cmd.help(), expected)
 })
 
-test('internal flag', (t) => {
+test('hiddenFlag', (t) => {
   const head = header('Header text')
   const foot = footer('Footer text')
   const cmd = command(
@@ -422,7 +422,7 @@ test('internal flag', (t) => {
     description('more info about staging pear app'),
     head,
     flag('--dry-run|-d', 'View the changes without applying them'),
-    flag('#--bare'),
+    hiddenFlag('--bare'),
     arg('<link>', 'App link key'),
     rest('[app-args...]', 'Any args passed after the link are passed to the app'),
     foot
