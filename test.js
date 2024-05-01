@@ -148,7 +148,7 @@ test [flags]
 
 Flags:
   --required   A required flag
-  --help|-h    print help
+  --help|-h    Show help
 `
   t.plan(2)
   t.is(cmd.parse(input), null)
@@ -285,8 +285,7 @@ test('Command overview', (t) => {
     cmd,
     foot
   )
-  const expected = `
-Header text
+  const expected = `Header text
 
   pear stage ~ stage pear app
 
@@ -317,23 +316,23 @@ test('Command overview full', (t) => {
     cmd,
     foot
   )
-  const expected = `
-Header text
+  const expected = `Header text
 
-  stage [flags] <link> [app-args...]
+  pear stage [flags] <link> [app-args...]
 
   stage pear app
 
   more info about staging pear app
 
   Arguments:
-    <link>         App link key
-  [app-args...]    Any args passed after the link are passed to the app
+    <link>          App link key
+    [app-args...]   Any args passed after the link are passed to the app
 
   Flags:
-    --dry-run|-d   View the changes without applying them
-    --bare         Do not apply any warmup
-    --help|-h      print help
+    --dry-run|-d    View the changes without applying them
+    --bare          Do not apply any warmup
+    --help|-h       Show help
+
 
 Footer text
 `
@@ -369,7 +368,7 @@ Arguments:
 Flags:
   --dry-run|-d    View the changes without applying them
   --bare          Do not apply any warmup
-  --help|-h       print help
+  --help|-h       Show help
 `
   t.plan(1)
   t.is(cmd.usage(), expected)
@@ -399,13 +398,13 @@ test('Command help', (t) => {
   more info about staging pear app
 
   Arguments:
-    <link>         App link key
-  [app-args...]    Any args passed after the link are passed to the app
+    <link>          App link key
+    [app-args...]   Any args passed after the link are passed to the app
 
   Flags:
-    --dry-run|-d   View the changes without applying them
-    --bare         Do not apply any warmup
-    --help|-h      print help
+    --dry-run|-d    View the changes without applying them
+    --bare          Do not apply any warmup
+    --help|-h       Show help
 
 Footer text
 `
@@ -437,12 +436,12 @@ test('hiddenFlag', (t) => {
   more info about staging pear app
 
   Arguments:
-    <link>         App link key
-  [app-args...]    Any args passed after the link are passed to the app
+    <link>          App link key
+    [app-args...]   Any args passed after the link are passed to the app
 
   Flags:
-    --dry-run|-d   View the changes without applying them
-    --help|-h      print help
+    --dry-run|-d    View the changes without applying them
+    --help|-h       Show help
 
 Footer text
 `
@@ -473,7 +472,7 @@ test('Command usage subcommand', (t) => {
     foot
   )
 
-  const expected = `stage [flags] <link> [app-args...]
+  const expected = `pear stage [flags] <link> [app-args...]
 
 stage pear app
 
@@ -486,7 +485,7 @@ Arguments:
 Flags:
   --dry-run|-d    View the changes without applying them
   --bare          Do not apply any warmup
-  --help|-h       print help
+  --help|-h       Show help
 `
   t.plan(1)
   t.is(app.usage('stage'), expected)
@@ -514,7 +513,7 @@ test('Command help subcommand', (t) => {
     foot
   )
 
-  const expected = `stage [flags] <link> [app-args...]
+  const expected = `pear stage [flags] <link> [app-args...]
 
 stage pear app
 
@@ -527,7 +526,7 @@ Arguments:
 Flags:
   --dry-run|-d    View the changes without applying them
   --bare          Do not apply any warmup
-  --help|-h       print help
+  --help|-h       Show help
 `
   t.plan(1)
   t.is(app.usage('stage'), expected)
@@ -595,7 +594,7 @@ test('subcommand subcommand', (t) => {
 
   const input = ['stage', '--dry-run', '--bare', 'sub', '--some', 'args']
   app.parse(input)
-  const expectedUsage = `stage [flags] [command]
+  const expectedUsage = `pear stage [flags] [command]
 
 stage pear app
 
@@ -604,22 +603,22 @@ more info about staging pear app
 Flags:
   --dry-run|-d   View the changes without applying them
   --bare         Do not apply any warmup
-  --help|-h      print help
+  --help|-h      Show help
 
 Commands:
   sub            subcmd
 `
-  const expectedOverview = `
-Header text
+  const expectedOverview = `Header text
 
-  another [flags] <reqd> [optl]
+  pear another [flags] <reqd> [optl]
 
   Arguments:
     <reqd> [optl]
 
   Flags:
-    --help|-h   print help
-  stage [flags] [command]
+    --help|-h   Show help
+
+  pear pear stage [flags] [command]
 
   stage pear app
 
@@ -628,10 +627,11 @@ Header text
   Flags:
     --dry-run|-d   View the changes without applying them
     --bare         Do not apply any warmup
-    --help|-h      print help
+    --help|-h      Show help
 
   Commands:
     sub            subcmd
+
 
 Footer text
 `

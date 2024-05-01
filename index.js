@@ -122,12 +122,12 @@ class Command {
 
   overview ({ full = false } = {}) {
     let s = ''
-    if (this.header) s += EOL + this.header + EOL + EOL
+    if (this.header) s += this.header + EOL + EOL
 
     for (const [name, command] of this._definedCommands) {
       if (full) {
         command._indent = this.header ? '  ' : ''
-        s += command.usage()
+        s += command._indent + this.name + ' ' + command._oneliner(false) + EOL + command._aligned() + EOL
         command._indent = ''
       } else s += '  ' + this.name + ' ' + name + ' ~ ' + command.summary + EOL
     }
@@ -141,7 +141,6 @@ class Command {
     let s = ''
 
     if (this.header) s += this.header + EOL + EOL
-
     this._indent = this.header ? '  ' : ''
     s += this.usage(...args)
     this._indent = ''
@@ -154,14 +153,12 @@ class Command {
   usage (subcommand, ...args) {
     if (subcommand) {
       const sub = this._definedCommands.get(subcommand)
-      if (!sub) return this.bail(createBail('UNKNOWN_ARG', null, { value: subcommand }))
-      return sub.usage(...args)
+      if (!sub) return this.bail(createBail(this, 'UNKNOWN_ARG', null, { value: subcommand }))
+      sub.parent = this
+      const str = sub.usage(...args)
+      return str
     }
-
-    let s = ''
-
-    s += this._indent + this._oneliner(false) + EOL
-
+    let s = this._indent + this._oneliner(false) + EOL
     s += this._aligned()
 
     return s
@@ -208,7 +205,7 @@ class Command {
     }
 
     if (!bail) {
-      if (c._runner !== null) c.running = runAsync(c)
+      if (c._runner !== null) c.running = runAsync(c, this)
       return c
     }
 
@@ -218,7 +215,9 @@ class Command {
 
   _oneliner (short, relative) {
     const stack = [this]
-    if (!relative) while (stack[stack.length - 1].parent) stack.push(stack[stack.length - 1].parent)
+    if (!relative) {
+      while (stack[stack.length - 1].parent) stack.push(stack[stack.length - 1].parent)
+    }
 
     const run = stack.reverse().map(c => c.name || 'app')
 
@@ -254,7 +253,7 @@ class Command {
     }
 
     if (this._definedRest) {
-      l.push(['  ' + this._definedRest.help, this._definedRest.description])
+      l.push([indent + '  ' + this._definedRest.help, this._definedRest.description])
     }
 
     if (this._definedFlags.size) {
@@ -340,7 +339,9 @@ class Command {
         break
       }
       case 'footer': {
-        this.footer = unindent(d.value)
+        this.footer = (d.value !== null && typeof d.value === 'object')
+          ? { help: unindent(d.value.help || ''), overview: d.value.overview }
+          : unindent(d.value)
         break
       }
       case 'sloppy': {
@@ -377,10 +378,10 @@ class Command {
 
   _onflag (flag, parser) {
     const def = this._getFlag(flag.name)
-    if (def === null) return createBail('UNKNOWN_FLAG', flag, null)
+    if (def === null) return createBail(this, 'UNKNOWN_FLAG', flag, null)
 
     if (def.boolean === true) {
-      if (flag.value) return createBail('INVALID_FLAG', flag, null)
+      if (flag.value) return createBail(this, 'INVALID_FLAG', flag, null)
       this.flags[def.name] = true
       return null
     }
@@ -392,7 +393,7 @@ class Command {
       }
 
       const next = parser.next()
-      if (next === null || !next.arg) return createBail('INVALID_FLAG', flag, null)
+      if (next === null || !next.arg) return createBail(this, 'INVALID_FLAG', flag, null)
       this.flags[def.name] = next.arg
     }
 
@@ -407,7 +408,7 @@ class Command {
         return null
       }
 
-      return createBail('UNKNOWN_ARG', null, info)
+      return createBail(this, 'UNKNOWN_ARG', null, info)
     }
 
     const def = this._definedArgs[this.positionals.length]
@@ -419,7 +420,7 @@ class Command {
 
   _onrest (rest) {
     if (this._definedRest === null) {
-      return createBail('UNKNOWN_ARG', null, { index: this.positionals.length, value: '--' })
+      return createBail(this, 'UNKNOWN_ARG', null, { index: this.positionals.length, value: '--' })
     }
 
     this.rest = rest
@@ -428,6 +429,7 @@ class Command {
 
   _bail (bail) {
     if (typeof this._onbail === 'function') return this._onbail(bail)
+    if (this.parent) return this.parent._bail(bail)
     if (bail.flag) throw new Error(bail.reason + ': ' + bail.flag.name)
     if (bail.arg) throw new Error(bail.reason + ': ' + bail.arg.value)
     throw new Error(bail.reason)
@@ -457,7 +459,7 @@ class Arg {
   usage () {
     if (!this.optional) return this.description
     const first = this.description.slice(0, 1)
-    return (first.toLowerCase() === first ? 'optional. ' : 'Optional. ') + this.description
+    return (this.description && first.toLowerCase() === first ? 'optional. ' : 'Optional. ') + this.description
   }
 }
 
@@ -498,7 +500,7 @@ function command (name, ...args) {
       throw new Error('Unknown arg: ' + a)
     }
   }
-  c._addFlag(new Flag('--help|-h', 'print help'))
+  c._addFlag(new Flag('--help|-h', 'Show help'))
   if (!c._runner) c._addRunner(noop)
   return c
 }
@@ -594,12 +596,8 @@ function trimFlag (s) {
   return s.replace(/(^[^0-9\w]+)|([^0-9\w]+$)/g, '')
 }
 
-function createBail (reason, flag, arg) {
-  return {
-    reason,
-    flag,
-    arg
-  }
+function createBail (command, reason, flag, arg, err) {
+  return { command, reason, flag, arg, err }
 }
 
 function defaultFlag (name) {
@@ -612,10 +610,15 @@ function defaultFlag (name) {
   }
 }
 
-async function runAsync (c) {
+async function runAsync (c, parent) {
+  if (c !== parent) c.parent = parent
   if (c.flags.help) {
     console.log(c.help())
     return
   }
-  await c._runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, command: c })
+  try {
+    await c._runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, command: c })
+  } catch (err) {
+    c.bail(createBail(c, err.message, null, null, err))
+  }
 }
