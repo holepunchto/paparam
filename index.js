@@ -127,7 +127,7 @@ class Command {
     for (const [name, command] of this._definedCommands) {
       if (full) {
         command._indent = this.header ? '  ' : ''
-        s += command._indent + this.name + ' ' + command._oneliner(false) + EOL + command._aligned() + EOL
+        s += command._indent + command._oneliner(false) + EOL + command._aligned() + EOL
         command._indent = ''
       } else s += '  ' + this.name + ' ' + name + ' ~ ' + command.summary + EOL
     }
@@ -298,6 +298,7 @@ class Command {
   _addCommand (c) {
     if (!c.header) c.header = this.header
     if (!c.footer) c.footer = this.footer
+    if (!c.parent) c.parent = this
     this._definedCommands.set(c.name, c)
   }
 
@@ -611,7 +612,7 @@ function defaultFlag (name) {
 }
 
 async function runAsync (c, parent) {
-  if (c !== parent) c.parent = parent
+  if (c !== parent && !c.parent) c.parent = parent
   if (c.flags.help) {
     console.log(c.help())
     return

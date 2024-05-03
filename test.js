@@ -618,7 +618,7 @@ Commands:
   Flags:
     --help|-h   Show help
 
-  pear pear stage [flags] [command]
+  pear stage [flags] [command]
 
   stage pear app
 
