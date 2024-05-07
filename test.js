@@ -618,7 +618,7 @@ Commands:
   Flags:
     --help|-h   Show help
 
-  pear pear stage [flags] [command]
+  pear stage [flags] [command]
 
   stage pear app
 
@@ -637,4 +637,22 @@ Footer text
 `
   t.is(app.usage('stage'), expectedUsage)
   t.is(app.overview({ full: true }), expectedOverview)
+})
+
+test('subcommand parent', (t) => {
+  const sub = command('release')
+  const cmd = command('gc', sub)
+  command('pear', cmd)
+  t.plan(2)
+  t.is(sub.parent.name, 'gc', 'Subcommand parent')
+  t.is(cmd.parent.name, 'pear', 'Command parent')
+})
+
+test('subcommand parent flag', (t) => {
+  const sub = command('release')
+  const cmd = command('gc', sub, flag('--flag', 'Test flag'))
+  command('pear', cmd)
+  t.plan(1)
+  cmd.parse(['--flag'])
+  t.ok(sub.parent.flags.flag, 'Parent flags from subcommand')
 })
