@@ -173,11 +173,6 @@ class Command {
     const visited = [c]
 
     while (bail === null) {
-      if (c._definedRest !== null && c.positionals.length === c._definedArgs.length) {
-        bail = c._onrest(p.rest())
-        break
-      }
-
       const n = p.next()
       if (n === null) break
 
@@ -199,6 +194,13 @@ class Command {
           visited.push(c)
           continue
         }
+      }
+
+      if (c._definedRest !== null && n.arg && c.positionals.length === c._definedArgs.length) {
+        // walk back parser index to include the current "arg"
+        p.i--
+        bail = c._onrest(p.rest())
+        break
       }
 
       bail = c._onarg(n.arg)
