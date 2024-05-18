@@ -678,3 +678,17 @@ test('subcommand parent flag', (t) => {
   cmd.parse(['--flag'])
   t.ok(sub.parent.flags.flag, 'Parent flags from subcommand')
 })
+
+test('command with rest flags and args', async (t) => {
+  const cmd = command('test', arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'), sloppy({ flags: true }))
+  t.plan(1)
+  cmd.parse(['val', '--flag-a', '--flag-b', 'rest-arg'])
+  t.alike(cmd.rest, ['--flag-a', '--flag-b', 'rest-arg'])
+})
+
+test('command with empty rest', async (t) => {
+  const cmd = command('test', arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'), sloppy({ flags: true }))
+  t.plan(1)
+  cmd.parse(['val'])
+  t.alike(cmd.rest, [])
+})
