@@ -692,3 +692,16 @@ test('command with empty rest', async (t) => {
   cmd.parse(['val'])
   t.alike(cmd.rest, [])
 })
+
+test('command with own flags, rest flags, and args', async (t) => {
+  const cmd = command('test', flag('--flag-a'), arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'))
+  t.plan(1)
+  cmd.parse(['--flag-a', 'val', '--flag-b', 'rest-arg'])
+  t.alike(cmd.rest, ['--flag-b', 'rest-arg'])
+})
+
+test('command with invalid flags, rest flags, and args', async (t) => {
+  const cmd = command('test', arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'))
+  t.plan(1)
+  t.exception(() => cmd.parse(['--flag-a', 'val', '--flag-b', 'rest-arg']), /UNKNOWN_FLAG: flag-a/)
+})
