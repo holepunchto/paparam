@@ -214,6 +214,50 @@ test('command composition w/ runner ', (t) => {
   cmd.parse(input)
 })
 
+test('boolean flags contain default false value', (t) => {
+  t.plan(2)
+  const cmd = command(
+    'stage',
+    summary('stage pear app'),
+    description('more info about staging pear app'),
+    header('Header text'),
+    flag('--dry-run|-d', 'View the changes without applying them'),
+    flag('--bare', 'Do not apply any warmup'),
+    arg('<link>', 'App link key'),
+    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    footer('Footer text'),
+    function (cmd) {
+      t.ok(cmd.flags.dryRun, 'Dry run flag should be true')
+      t.not(cmd.flags.bare, 'Bare flag should be false')
+    }
+  )
+
+  const input = ['--dry-run', 'pear://example', 'app', 'args']
+  cmd.parse(input)
+})
+
+test('--no- prefixed boolean flags contain default true value', (t) => {
+  t.plan(2)
+  const cmd = command(
+    'stage',
+    summary('stage pear app'),
+    description('more info about staging pear app'),
+    header('Header text'),
+    flag('--dry-run|-d', 'View the changes without applying them'),
+    flag('--no-bare', 'Do not not apply any warmup'),
+    arg('<link>', 'App link key'),
+    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    footer('Footer text'),
+    function (cmd) {
+      t.ok(cmd.flags.dryRun, 'Dry run flag should be true')
+      t.ok(cmd.flags.bare, 'Bare flag should be true')
+    }
+  )
+
+  const input = ['--dry-run', 'pear://example', 'app', 'args']
+  cmd.parse(input)
+})
+
 test('nested command composition w/ subrunner', (t) => {
   t.plan(5)
   const head = header('Header text')

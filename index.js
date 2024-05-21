@@ -364,7 +364,7 @@ class Command {
     this.positionals = []
     this.rest = null
     this.running = null
-
+    for (const [name, { value }] of this._definedFlags) this.flags[name] = value
     return this
   }
 
@@ -440,13 +440,14 @@ class Command {
 
 class Flag {
   constructor (spec, description = '', hidden) {
-    const { longName, shortName, aliases, boolean, help } = parseFlag(spec)
+    const { longName, shortName, aliases, boolean, help, value } = parseFlag(spec)
     this.name = snakeToCamel(longName || shortName)
     this.aliases = aliases
     this.boolean = boolean
     this.help = help
     this.description = description
     this.hidden = hidden
+    this.value = value
   }
 }
 
@@ -569,12 +570,13 @@ function snakeToCamel (name) {
 
 function parseFlag (help) {
   const parts = help.split(/[| ]/)
-  const result = { longName: null, shortName: null, aliases: [], boolean: true, help }
-
+  const result = { longName: null, shortName: null, aliases: [], boolean: true, help, value: '', inverse: false }
   for (const p of parts) {
+    result.inverse = p.startsWith('--no-')
     if (p.startsWith('--')) {
-      const name = trimFlag(p)
+      const name = result.inverse ? trimFlag(p).slice(3) : trimFlag(p)
       if (result.longName === null) result.longName = name
+      result.value = result.inverse
       result.aliases.push(name)
       continue
     }
@@ -582,6 +584,7 @@ function parseFlag (help) {
     if (p.startsWith('-')) {
       const name = trimFlag(p)
       if (result.shortName === null) result.shortName = name
+      result.value = false
       result.aliases.push(name)
       continue
     }
@@ -608,7 +611,8 @@ function defaultFlag (name) {
     aliases: [name],
     boolean: false,
     help: '',
-    description: ''
+    description: '',
+    value: ''
   }
 }
 
