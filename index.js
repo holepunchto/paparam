@@ -570,7 +570,7 @@ function snakeToCamel (name) {
 
 function parseFlag (help) {
   const parts = help.split(/[| ]/)
-  const result = { longName: null, shortName: null, aliases: [], boolean: true, help, value: '', inverse: false }
+  const result = { longName: null, shortName: null, aliases: [], boolean: true, help, value: undefined, inverse: false }
   for (const p of parts) {
     result.inverse = p.startsWith('--no-')
     if (p.startsWith('--')) {
