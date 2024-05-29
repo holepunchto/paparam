@@ -25,6 +25,7 @@ class Parser {
 
   rest () {
     const rest = this.argv.slice(this.i)
+    this.lasti = this.i
     this.i = this.argv.length
     return rest
   }
@@ -46,6 +47,7 @@ class Parser {
       this.multi = null
 
       if (this.i >= this.argv.length) return null
+      this.lasti = this.i
       const a = this.argv[this.i++]
 
       if (a === '--') {
@@ -90,6 +92,7 @@ class Command {
     this.positionals = []
     this.rest = null
     this.bailed = null
+    this.indices = { flags: {}, args: {}, positionals: [], rest: undefined }
 
     this.running = null
 
@@ -174,7 +177,7 @@ class Command {
 
     while (bail === null) {
       if (c._definedRest !== null && c.positionals.length === c._definedArgs.length && c._definedArgs.length > 0) {
-        bail = c._onrest(p.rest())
+        bail = c._onrest(p.rest(), p)
         break
       }
 
@@ -187,7 +190,7 @@ class Command {
       }
 
       if (n.arg && c._definedArgs.length > 0) {
-        bail = c._onarg(n.arg)
+        bail = c._onarg(n.arg, p)
         continue
       }
 
@@ -202,7 +205,7 @@ class Command {
       }
 
       p.i--
-      bail = c._onrest(p.rest())
+      bail = c._onrest(p.rest(), p)
     }
 
     if (!bail) {
@@ -363,6 +366,7 @@ class Command {
     this.args = {}
     this.positionals = []
     this.rest = null
+    this.indices = { flags: {}, args: {}, positionals: [], rest: undefined }
     this.running = null
     for (const [name, { value }] of this._definedFlags) this.flags[name] = value
     return this
@@ -385,28 +389,32 @@ class Command {
     if (def.boolean === true) {
       if (flag.value) return createBail(this, 'INVALID_FLAG', flag, null)
       this.flags[def.name] = true
+      this.indices.flags[def.name] = parser.lasti
       return null
     }
 
     if (def.boolean === false) {
       if (flag.value) {
         this.flags[def.name] = flag.value
+        this.indices.flags[def.name] = parser.lasti
         return null
       }
 
       const next = parser.next()
       if (next === null || !next.arg) return createBail(this, 'INVALID_FLAG', flag, null)
       this.flags[def.name] = next.arg
+      this.indices.flags[def.name] = parser.lasti
     }
 
     return null
   }
 
-  _onarg (arg) {
+  _onarg (arg, parser) {
     const info = { index: this.positionals.length, value: arg }
     if (this._definedArgs.length <= this.positionals.length) {
       if (this._strictArgs === false) {
         this.positionals.push(arg)
+        this.indices.positionals.push(parser.lasti)
         return null
       }
 
@@ -415,17 +423,20 @@ class Command {
 
     const def = this._definedArgs[this.positionals.length]
     this.positionals.push(arg)
+    this.indices.positionals.push(parser.lasti)
     this.args[def.name] = arg
+    this.indices.args[def.name] = parser.lasti
 
     return null
   }
 
-  _onrest (rest) {
+  _onrest (rest, parser) {
     if (this._definedRest === null) {
       return createBail(this, 'UNKNOWN_ARG', null, { index: this.positionals.length, value: '--' })
     }
 
     this.rest = rest
+    this.indices.rest = parser.lasti
     return null
   }
 
@@ -624,7 +635,7 @@ async function runAsync (c, parent) {
     return
   }
   try {
-    await c._runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, command: c })
+    await c._runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, indices: c.indices, command: c })
   } catch (err) {
     c.bail(createBail(c, err.message, null, null, err))
   }
