@@ -40,26 +40,31 @@ test('command with string flag', async (t) => {
 
 test('command with arguments', async (t) => {
   const cmd = command('test', arg('<arg>', 'Test argument'))
-  t.plan(1)
+  t.plan(2)
   cmd.parse(['val'])
   t.is(cmd.args.arg, 'val')
+  t.is(cmd.indices.args.arg, 0)
 })
 
 test('command with rest arguments', async (t) => {
   const cmd = command('test', arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'))
   cmd.parse(['val', 'some', 'more'])
-  t.plan(3)
+  t.plan(6)
   t.is(cmd.args.arg, 'val')
   t.alike(cmd.positionals, ['val'])
   t.alike(cmd.rest, ['some', 'more'])
+  t.is(cmd.indices.args.arg, 0)
+  t.alike(cmd.indices.positionals, [0])
+  t.is(cmd.indices.rest, 1)
 })
 
 test('command with flags, rest arguments but no args', async (t) => {
   const cmd = command('test', flag('-l', 'test flag'), rest('...rest', 'rest arguments'))
   cmd.parse(['-l', 'val', 'some', 'more'])
-  t.plan(2)
+  t.plan(3)
   t.ok(cmd.flags.l)
   t.alike(cmd.rest, ['val', 'some', 'more'])
+  t.is(cmd.indices.rest, 1)
 })
 
 test('command with flags & rest arguments swallows flags after first rest arg', async (t) => {
@@ -70,10 +75,13 @@ test('command with flags & rest arguments swallows flags after first rest arg', 
     rest('...rest', 'rest arguments')
   )
   cmd.parse(['--flag', 'val', 'some', 'more', '--other'])
-  t.plan(3)
+  t.plan(6)
   t.ok(cmd.flags.flag)
   t.ok(!cmd.flags.other)
   t.alike(cmd.rest, ['val', 'some', 'more', '--other'])
+  t.is(cmd.indices.flags.flag, 0)
+  t.is(cmd.indices.flags.other, undefined)
+  t.is(cmd.indices.rest, 1)
 })
 
 test('command with header', async (t) => {
@@ -190,7 +198,7 @@ test('command opts - bail (custom function, throwing)', (t) => {
 })
 
 test('command composition w/ runner ', (t) => {
-  t.plan(5)
+  t.plan(9)
   const cmd = command(
     'stage',
     summary('stage pear app'),
@@ -207,6 +215,10 @@ test('command composition w/ runner ', (t) => {
       t.ok(cmd.flags.bare, 'Bare flag should be true')
       t.is(cmd.args.link, 'pear://example', 'Link argument should be correctly parsed')
       t.is(cmd.rest.length, 2, 'Rest arguments correctly parsed')
+      t.is(cmd.indices.flags.dryRun, 0)
+      t.is(cmd.indices.flags.bare, 1)
+      t.is(cmd.indices.args.link, 2)
+      t.is(cmd.indices.rest, 3)
     }
   )
 
@@ -215,7 +227,7 @@ test('command composition w/ runner ', (t) => {
 })
 
 test('boolean flags contain default false value', (t) => {
-  t.plan(2)
+  t.plan(4)
   const cmd = command(
     'stage',
     summary('stage pear app'),
@@ -229,6 +241,8 @@ test('boolean flags contain default false value', (t) => {
     function (cmd) {
       t.ok(cmd.flags.dryRun, 'Dry run flag should be true')
       t.not(cmd.flags.bare, 'Bare flag should be false')
+      t.is(cmd.indices.flags.dryRun, 0)
+      t.is(cmd.indices.flags.bare, undefined)
     }
   )
 
@@ -237,7 +251,7 @@ test('boolean flags contain default false value', (t) => {
 })
 
 test('--no- prefixed boolean flags contain default true value', (t) => {
-  t.plan(2)
+  t.plan(4)
   const cmd = command(
     'stage',
     summary('stage pear app'),
@@ -251,6 +265,8 @@ test('--no- prefixed boolean flags contain default true value', (t) => {
     function (cmd) {
       t.ok(cmd.flags.dryRun, 'Dry run flag should be true')
       t.ok(cmd.flags.bare, 'Bare flag should be true')
+      t.is(cmd.indices.flags.dryRun, 0)
+      t.is(cmd.indices.flags.bare, undefined)
     }
   )
 
@@ -259,7 +275,7 @@ test('--no- prefixed boolean flags contain default true value', (t) => {
 })
 
 test('nested command composition w/ subrunner', (t) => {
-  t.plan(5)
+  t.plan(9)
   const head = header('Header text')
   const foot = footer('Footer text')
   const cmd = command(
@@ -278,6 +294,10 @@ test('nested command composition w/ subrunner', (t) => {
       t.ok(cmd.flags.bare, 'Bare flag should be true')
       t.is(cmd.args.link, 'pear://example', 'Link argument should be correctly parsed')
       t.is(cmd.rest.length, 2, 'Rest arguments correctly parsed')
+      t.is(cmd.indices.flags.dryRun, 1)
+      t.is(cmd.indices.flags.bare, 2)
+      t.is(cmd.indices.args.link, 3)
+      t.is(cmd.indices.rest, 4)
     }
   )
 
@@ -725,23 +745,28 @@ test('subcommand parent flag', (t) => {
 
 test('command with rest flags and args', async (t) => {
   const cmd = command('test', arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'), sloppy({ flags: true }))
-  t.plan(1)
+  t.plan(3)
   cmd.parse(['val', '--flag-a', '--flag-b', 'rest-arg'])
   t.alike(cmd.rest, ['--flag-a', '--flag-b', 'rest-arg'])
+  t.is(cmd.indices.args.arg, 0)
+  t.is(cmd.indices.rest, 1)
 })
 
 test('command with empty rest', async (t) => {
   const cmd = command('test', arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'), sloppy({ flags: true }))
-  t.plan(1)
+  t.plan(3)
   cmd.parse(['val'])
   t.alike(cmd.rest, [])
+  t.is(cmd.indices.args.arg, 0)
+  t.is(cmd.indices.rest, 1)
 })
 
 test('command with own flags, rest flags, and args', async (t) => {
   const cmd = command('test', flag('--flag-a'), arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'))
-  t.plan(1)
+  t.plan(2)
   cmd.parse(['--flag-a', 'val', '--flag-b', 'rest-arg'])
   t.alike(cmd.rest, ['--flag-b', 'rest-arg'])
+  t.is(cmd.indices.rest, 2)
 })
 
 test('command with invalid flags, rest flags, and args', async (t) => {
