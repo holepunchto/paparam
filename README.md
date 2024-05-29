@@ -154,6 +154,22 @@ Command header
 
 Command footer
 
+#### `cmd.indices.flags` `<Object>`
+
+After `cmd.parse` has been called, contains the index of each flag in the original array.
+
+#### `cmd.indices.args` `<Object>`
+
+After `cmd.parse` has been called, contains the index of each parsed argument in the original array.
+
+#### `cmd.indices.positionals` `<Array>`
+
+After `cmd.parse` has been called, contains the indexes of each positional argument in the original array.
+
+#### `cmd.indices.rest` `<Number>`
+
+After `cmd.parse` has been called, contains the index of the first rest argument in the positional array.
+
 ### `flag(spec, description)`
 
 Defines a flag for a command. Flags can be simple boolean switches or can expect a value.
