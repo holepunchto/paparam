@@ -140,16 +140,22 @@ test('command opts - flags sloppy mode, no bail on unknown string flag', (t) => 
   t.execution(() => { cmd.parse(input) })
 })
 
-test('command opts - flags sloppy mode, WILL bail on invalid unknown boolean flag', (t) => {
+test('command opts - flags sloppy mode, will parse valueless unknown flag into value undefined', (t) => {
+  t.plan(2)
   const cmd = command(
     'stage',
     flag('--dry-run', 'Performs a dry run'),
     arg('<link>', 'App link key'),
-    sloppy({ flags: true })
+    sloppy({ flags: true }),
+    function (cmd) {
+      t.ok(Object.hasOwn(cmd.flags, 'unknown-flag'))
+      t.is(cmd.flags['unknown-flag'], undefined)
+    }
   )
   const input = ['--unknown-flag']
-  t.plan(1)
-  t.exception(() => { cmd.parse(input) })
+  
+  cmd.parse(input)
+  
 })
 
 test('command opts - args sloppy mode, no bail on unknown', (t) => {

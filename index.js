@@ -402,7 +402,7 @@ class Command {
 
       const next = parser.next()
       const argless = next === null || !next.arg
-      if (flag.valueRequired && argless) {
+      if (def.valueRequired && argless) {
         return createBail(this, 'INVALID_FLAG', flag, null)
       }
       this.flags[def.name] = next?.arg
