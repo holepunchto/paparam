@@ -274,7 +274,7 @@ test('--no- prefixed boolean flags contain default true value', (t) => {
   cmd.parse(input)
 })
 
-test('string flag [optional]', (t) => {
+test('string flag [optional] and provided', (t) => {
   t.plan(1)
   const cmd = command(
     'stage',
@@ -309,6 +309,20 @@ test('string flag <required> but omitted', (t) => {
   )
 
   t.exception(() => cmd.parse(['--some']), 'INVALID_FLAG')
+})
+
+test('string flag [optional] and omitted', (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    flag('--some [flag]', 'some flag'),
+    function (cmd) {
+      t.is(cmd.flags.some, undefined)
+    }
+  )
+
+  const input = ['--some']
+  cmd.parse(input)
 })
 
 test('nested command composition w/ subrunner', (t) => {
