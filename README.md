@@ -175,7 +175,7 @@ After `cmd.parse` has been called, contains the index of the first rest argument
 Defines a flag for a command. Flags can be simple boolean switches or can expect a value.
 
 - **Arguments**:
-  - `spec` `<String>`: `--long|-l (<value> | [value])?` , e.g., `--verbose|-v`, `--output [file]`, `--required <flag>`
+  - `spec` `<String>`: `--long|-l (<value> | [value])?` , e.g., `--boolean-flag|-b`, `--string-flag [optional-value]`, `--string-flag <required-value>`
   - `description` `<String>`: A description of what the flag does.
 
 - **Returns**:
@@ -186,7 +186,7 @@ Defines a flag for a command. Flags can be simple boolean switches or can expect
 Defines a hidden flag for a command, the flag is functional but will not show in help output.
 
 - **Arguments**:
-  - `spec` `<String>`: `--long|-l (<value> | [value])?` , e.g., `--verbose|-v`, `--output [file]`, `--required <flag>`
+  - `spec` `<String>`: `--long|-l (<value> | [value])?` , e.g., `--boolean-flag|-b`, `--string-flag [optional-value]`, `--string-flag <required-value>`
   - `description` `<String>`: A description of what the flag does.
 
 - **Returns**:
