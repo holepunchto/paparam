@@ -401,8 +401,11 @@ class Command {
       }
 
       const next = parser.next()
-      if (next === null || !next.arg) return createBail(this, 'INVALID_FLAG', flag, null)
-      this.flags[def.name] = next.arg
+      const argless = next === null || !next.arg
+      if (flag.valueRequired && argless) {
+        return createBail(this, 'INVALID_FLAG', flag, null)
+      }
+      this.flags[def.name] = next?.arg
       this.indices.flags[def.name] = parser.lasti
     }
 
@@ -451,7 +454,7 @@ class Command {
 
 class Flag {
   constructor (spec, description = '', hidden) {
-    const { longName, shortName, aliases, boolean, help, value } = parseFlag(spec)
+    const { longName, shortName, aliases, boolean, help, value, valueRequired } = parseFlag(spec)
     this.name = snakeToCamel(longName || shortName)
     this.aliases = aliases
     this.boolean = boolean
@@ -459,6 +462,7 @@ class Flag {
     this.description = description
     this.hidden = hidden
     this.value = value
+    this.valueRequired = valueRequired
   }
 }
 
@@ -581,7 +585,7 @@ function snakeToCamel (name) {
 
 function parseFlag (help) {
   const parts = help.split(/[| ]/)
-  const result = { longName: null, shortName: null, aliases: [], boolean: true, help, value: null, inverse: false }
+  const result = { longName: null, shortName: null, aliases: [], boolean: true, help, value: null, inverse: false, valueRequired: false }
   for (const p of parts) {
     result.inverse = p.startsWith('--no-')
     if (p.startsWith('--')) {
@@ -600,9 +604,12 @@ function parseFlag (help) {
       continue
     }
 
-    if (p.startsWith('[') || p.startsWith('<')) {
+    const valueRequired = p.startsWith('<')
+    const stringFlag = p.startsWith('[') || valueRequired
+    if (stringFlag) {
       result.boolean = false
       result.value = undefined
+      result.valueRequired = valueRequired
     }
   }
 
