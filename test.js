@@ -325,6 +325,60 @@ test('string flag [optional] and omitted', (t) => {
   cmd.parse(input)
 })
 
+test('string flag w/ alias [optional] and provided', (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    flag('--some, -s [flag]', 'some flag'),
+    function (cmd) {
+      t.is(cmd.flags.some, 'value')
+    }
+  )
+
+  const input = ['--some', 'value']
+  cmd.parse(input)
+})
+
+test('string flag w/ alias <required> and provided', (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    flag('--some, -s <flag>', 'some flag'),
+    function (cmd) {
+      t.is(cmd.flags.some, 'value')
+    }
+  )
+  cmd.parse(['--some', 'value'])
+})
+
+test('string flag w/ alias <required> but omitted', (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    flag('--some, -s <flag>', 'some flag'),
+    function (cmd) { /* empty */ }
+  )
+
+  t.exception(() => cmd.parse(['--some']), 'INVALID_FLAG')
+})
+
+test('string flag w/ alias [optional] and omitted', (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    flag('--some, -s [flag]', 'some flag'),
+    function (cmd) {
+      t.is(cmd.flags.some, undefined)
+    }
+  )
+
+  const input = ['--some']
+  cmd.parse(input)
+})
+
+
+
+
 test('nested command composition w/ subrunner', (t) => {
   t.plan(9)
   const head = header('Header text')
