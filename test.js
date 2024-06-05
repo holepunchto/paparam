@@ -140,16 +140,22 @@ test('command opts - flags sloppy mode, no bail on unknown string flag', (t) => 
   t.execution(() => { cmd.parse(input) })
 })
 
-test('command opts - flags sloppy mode, WILL bail on invalid unknown boolean flag', (t) => {
+test('command opts - flags sloppy mode, will parse valueless unknown flag into value undefined', (t) => {
+  t.plan(2)
   const cmd = command(
     'stage',
     flag('--dry-run', 'Performs a dry run'),
     arg('<link>', 'App link key'),
-    sloppy({ flags: true })
+    sloppy({ flags: true }),
+    function (cmd) {
+      t.ok(Object.hasOwn(cmd.flags, 'unknown-flag'))
+      t.is(cmd.flags['unknown-flag'], undefined)
+    }
   )
   const input = ['--unknown-flag']
-  t.plan(1)
-  t.exception(() => { cmd.parse(input) })
+  
+  cmd.parse(input)
+  
 })
 
 test('command opts - args sloppy mode, no bail on unknown', (t) => {
@@ -273,6 +279,111 @@ test('--no- prefixed boolean flags contain default true value', (t) => {
   const input = ['--dry-run', 'pear://example', 'app', 'args']
   cmd.parse(input)
 })
+
+test('string flag [optional] and provided', (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    flag('--some [flag]', 'some flag'),
+    function (cmd) {
+      t.is(cmd.flags.some, 'value')
+    }
+  )
+
+  const input = ['--some', 'value']
+  cmd.parse(input)
+})
+
+test('string flag <required> and provided', (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    flag('--some <flag>', 'some flag'),
+    function (cmd) {
+      t.is(cmd.flags.some, 'value')
+    }
+  )
+  cmd.parse(['--some', 'value'])
+})
+
+test('string flag <required> but omitted', (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    flag('--some <flag>', 'some flag'),
+    function (cmd) { /* empty */ }
+  )
+
+  t.exception(() => cmd.parse(['--some']), 'INVALID_FLAG')
+})
+
+test('string flag [optional] and omitted', (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    flag('--some [flag]', 'some flag'),
+    function (cmd) {
+      t.is(cmd.flags.some, undefined)
+    }
+  )
+
+  const input = ['--some']
+  cmd.parse(input)
+})
+
+test('string flag w/ alias [optional] and provided', (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    flag('--some, -s [flag]', 'some flag'),
+    function (cmd) {
+      t.is(cmd.flags.some, 'value')
+    }
+  )
+
+  const input = ['--some', 'value']
+  cmd.parse(input)
+})
+
+test('string flag w/ alias <required> and provided', (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    flag('--some, -s <flag>', 'some flag'),
+    function (cmd) {
+      t.is(cmd.flags.some, 'value')
+    }
+  )
+  cmd.parse(['--some', 'value'])
+})
+
+test('string flag w/ alias <required> but omitted', (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    flag('--some, -s <flag>', 'some flag'),
+    function (cmd) { /* empty */ }
+  )
+
+  t.exception(() => cmd.parse(['--some']), 'INVALID_FLAG')
+})
+
+test('string flag w/ alias [optional] and omitted', (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    flag('--some, -s [flag]', 'some flag'),
+    function (cmd) {
+      t.is(cmd.flags.some, undefined)
+    }
+  )
+
+  const input = ['--some']
+  cmd.parse(input)
+})
+
+
+
 
 test('nested command composition w/ subrunner', (t) => {
   t.plan(9)
