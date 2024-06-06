@@ -170,6 +170,11 @@ After `cmd.parse` has been called, contains the indexes of each positional argum
 
 After `cmd.parse` has been called, contains the index of the first rest argument in the positional array.
 
+
+### `hiddenCommand(name, ...args)`
+
+Defines a command that does not display in overview or usage output. See `command` for API.
+
 ### `flag(spec, description)`
 
 Defines a flag for a command. Flags can be simple boolean switches or can expect a value.

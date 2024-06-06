@@ -1,6 +1,6 @@
 'use strict'
 const test = require('brittle')
-const { header, command, flag, hiddenFlag, arg, argv, rest, footer, summary, description, sloppy, bail } = require('./')
+const { header, command, hiddenCommand, flag, hiddenFlag, arg, argv, rest, footer, summary, description, sloppy, bail } = require('./')
 
 test('command creation', async (t) => {
   const cmd = command('test')
@@ -381,9 +381,6 @@ test('string flag w/ alias [optional] and omitted', (t) => {
   const input = ['--some']
   cmd.parse(input)
 })
-
-
-
 
 test('nested command composition w/ subrunner', (t) => {
   t.plan(9)
@@ -834,6 +831,50 @@ Footer text
 `
   t.is(app.usage('stage'), expectedUsage)
   t.is(app.overview({ full: true }), expectedOverview)
+})
+
+test('hiddenCommand', (t) => {
+  t.plan(2)
+  const head = header('Header text')
+  const foot = footer('Footer text')
+  const cmd = hiddenCommand(
+    'stage',
+    summary('stage pear app'),
+    description('more info about staging pear app'),
+    head,
+    flag('--dry-run|-d', 'View the changes without applying them'),
+    flag('--bare', 'Do not apply any warmup'),
+    arg('<link>', 'App link key'),
+    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    foot
+  )
+
+  const app = command(
+    'pear',
+    head,
+    cmd,
+    command('another', summary('one')),
+    foot
+  )
+  const expectedOverview = `Header text
+
+  pear another ~ one
+
+Footer text
+`
+
+  t.is(app.overview(), expectedOverview)
+
+  const expectedUsage = `pear [flags] [command]
+
+Flags:
+  --help|-h   Show help
+
+Commands:
+  another     one
+`
+
+  t.is(app.usage(), expectedUsage)
 })
 
 test('subcommand parent', (t) => {

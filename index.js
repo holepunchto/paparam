@@ -3,6 +3,7 @@ const EOL = '\n'
 const noop = () => {}
 module.exports = {
   command,
+  hiddenCommand,
   header,
   footer,
   argv,
@@ -79,9 +80,10 @@ class Parser {
 }
 
 class Command {
-  constructor (parent, name) {
+  constructor (parent, name, hidden = false) {
     this.parent = parent
     this.name = name
+    this.hidden = hidden
     this.description = ''
     this.summary = ''
     this.header = ''
@@ -128,6 +130,7 @@ class Command {
     if (this.header) s += this.header + EOL + EOL
 
     for (const [name, command] of this._definedCommands) {
+      if (command.hidden) continue
       if (full) {
         command._indent = this.header ? '  ' : ''
         s += command._indent + command._oneliner(false) + EOL + command._aligned() + EOL
@@ -274,6 +277,7 @@ class Command {
       l.push(['', ''])
       l.push([indent + this._labels.commands, ''])
       for (const c of this._definedCommands.values()) {
+        if (c.hidden) continue
         l.push([indent + '  ' + c._oneliner(true, true), c.summary || c.description])
       }
     }
@@ -467,11 +471,12 @@ class Flag {
 }
 
 class Arg {
-  constructor (help, description = '') {
+  constructor (help, description = '', hidden = false) {
     this.optional = help.startsWith('[')
     this.name = snakeToCamel(help)
     this.help = help
     this.description = description
+    this.hidden = hidden
   }
 
   usage () {
@@ -500,7 +505,14 @@ function argv () {
 }
 
 function command (name, ...args) {
-  const c = new Command(null, name)
+  return _command(new Command(null, name), args)
+}
+
+function hiddenCommand (name, ...args) {
+  return _command(new Command(null, name, true), args)
+}
+
+function _command (c, args) {
   for (const a of args) {
     if (a instanceof Command) {
       c._addCommand(a)
@@ -522,6 +534,7 @@ function command (name, ...args) {
   if (!c._runner) c._addRunner(noop)
   return c
 }
+
 
 function bail (fn) {
   return new Data('bail', fn)
@@ -557,6 +570,10 @@ function flag (help, description) {
 
 function rest (help, description) {
   return new Rest(help, description)
+}
+
+function hiddenArg (help, description) {
+  return new Arg(help, description, true)
 }
 
 function arg (help, description) {
