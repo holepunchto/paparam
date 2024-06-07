@@ -927,7 +927,7 @@ test('command with invalid flags, rest flags, and args', async (t) => {
   t.exception(() => cmd.parse(['--flag-a', 'val', '--flag-b', 'rest-arg']), /UNKNOWN_FLAG: flag-a/)
 })
 
-test('hyphenated-flag is parsed to camelCase, with "true" value, no kebab-case', async (t) => {
+test('hyphenated-flag is parsed camelCase, with "true" value, no kebab-case', async (t) => {
   t.plan(2)
   const cmd = command(
     'test',
@@ -942,7 +942,7 @@ test('hyphenated-flag is parsed to camelCase, with "true" value, no kebab-case',
   cmd.parse(input)
 })
 
-test('hyphenated-flag is parsed to camelCase, with "false" value, no kebab-case', async (t) => {
+test('hyphenated-flag is parsed camelCase, with default "false" value, no kebab-case', async (t) => {
   t.plan(2)
   const cmd = command(
     'test',
