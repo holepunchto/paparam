@@ -153,9 +153,9 @@ test('command opts - flags sloppy mode, will parse valueless unknown flag into v
     }
   )
   const input = ['--unknown-flag']
-  
+
   cmd.parse(input)
-  
+
 })
 
 test('command opts - args sloppy mode, no bail on unknown', (t) => {
@@ -925,4 +925,35 @@ test('command with invalid flags, rest flags, and args', async (t) => {
   const cmd = command('test', arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'))
   t.plan(1)
   t.exception(() => cmd.parse(['--flag-a', 'val', '--flag-b', 'rest-arg']), /UNKNOWN_FLAG: flag-a/)
+})
+
+test('hyphenated-flag is parsed to camelCase, with "true" value, no kebab-case', async (t) => {
+  t.plan(2)
+  const cmd = command(
+    'test',
+    flag('--hyphenated-flag', 'Hyphenated flag'),
+    function (cmd) {
+      t.ok(cmd.flags.hyphenatedFlag, 'hyphenatedFlag should be true')
+      t.is(cmd.flags['hyphenated-flag'], undefined, 'hyphenated-flag should not be kebab-case')
+    }
+  )
+
+  const input = ['--hyphenated-flag']
+  cmd.parse(input)
+})
+
+test('hyphenated-flag is parsed to camelCase, with "false" value, no kebab-case', async (t) => {
+  t.plan(2)
+  const cmd = command(
+    'test',
+    flag('--flag', 'Simple flag'),
+    flag('--hyphenated-flag', 'Hyphenated flag'),
+    function (cmd) {
+      t.absent(cmd.flags.hyphenatedFlag, 'hyphenatedFlag should be false')
+      t.is(cmd.flags['hyphenated-flag'], undefined, 'hyphenated-flag should not be kebab-case')
+    }
+  )
+
+  const input = ['--flag']
+  cmd.parse(input)
 })

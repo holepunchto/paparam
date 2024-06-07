@@ -311,8 +311,11 @@ class Command {
   }
 
   _addFlag (f) {
+    this._definedFlags.set(f.name, f)
     for (const alias of f.aliases) {
-      this._definedFlags.set(alias, f)
+      if (alias !== f.name) {
+        this._definedFlags.set(alias, f)
+      }
     }
   }
 
@@ -372,7 +375,12 @@ class Command {
     this.rest = null
     this.indices = { flags: {}, args: {}, positionals: [], rest: undefined }
     this.running = null
-    for (const [name, { value }] of this._definedFlags) this.flags[name] = value
+
+    for (const [name, { value }] of this._definedFlags) {
+      if (name === snakeToCamel(name)) {
+        this.flags[name] = value
+      }
+    }
     return this
   }
 
