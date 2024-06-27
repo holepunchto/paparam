@@ -401,6 +401,7 @@ class Command {
     if (def.boolean === true) {
       if (flag.value) return createBail(this, 'INVALID_FLAG', flag, null)
       this.flags[def.name] = true
+      if (def.aliases[1]) this.flags[def.aliases[1]] = true
       this.indices.flags[def.name] = parser.lasti
       return null
     }
@@ -408,6 +409,7 @@ class Command {
     if (def.boolean === false) {
       if (flag.value) {
         this.flags[def.name] = flag.value
+        if (def.aliases[1]) this.flags[def.aliases[1]] = flag.value
         this.indices.flags[def.name] = parser.lasti
         return null
       }
@@ -418,6 +420,7 @@ class Command {
         return createBail(this, 'INVALID_FLAG', flag, null)
       }
       this.flags[def.name] = next?.arg
+      if (def.aliases[1]) this.flags[def.aliases[1]] = next?.arg
       this.indices.flags[def.name] = parser.lasti
     }
 
