@@ -957,3 +957,42 @@ test('hyphenated-flag is parsed camelCase, with default "false" value, no kebab-
   const input = ['--flag']
   cmd.parse(input)
 })
+
+test('correct boolean value of flag aliases', async (t) => {
+  t.plan(8)
+  const cmd = command(
+    'test',
+    flag('--flag|-f', 'Test flag'),
+    flag('--another-flag|-a', 'Test flag'),
+    function (cmd) {
+      t.ok(cmd.flags['f'], 'Flag alias has correct boolean value')
+      t.ok(cmd.flags['flag'], 'Flag has correct boolean value')
+      t.ok(!cmd.flags['a'], 'Unused flag has correct boolean value')
+      t.ok(!cmd.flags['another-flag'], 'Unused flag has correct boolean value')
+    }
+  )
+
+  const input = ['--flag']
+  cmd.parse(input)
+
+  const aliasInput = ['-f']
+  cmd.parse(aliasInput)
+})
+
+test('correct non-boolean value of flag aliases', async (t) => {
+  t.plan(4)
+  const cmd = command(
+    'test',
+    flag('--flag|-f [val] ', 'Test flag'),
+    function (cmd) {
+      t.is(cmd.flags['f'], 'val', 'Flag alias has correct value')
+      t.is(cmd.flags['flag'], 'val', 'Flag has correct value')
+    }
+  )
+
+  const input = ['--flag', 'val']
+  cmd.parse(input)
+
+  const aliasInput = ['-f', 'val']
+  cmd.parse(aliasInput)
+})
