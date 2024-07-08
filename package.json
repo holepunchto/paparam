@@ -11,6 +11,7 @@
     "brittle": "^3.5.0",
     "standard": "^17.1.0"
   },
+  "files": ["index.js"],
   "standard": {
     "globals": [
       "Bare"
