@@ -155,7 +155,6 @@ test('command opts - flags sloppy mode, will parse valueless unknown flag into v
   const input = ['--unknown-flag']
 
   cmd.parse(input)
-
 })
 
 test('command opts - args sloppy mode, no bail on unknown', (t) => {
@@ -965,9 +964,9 @@ test('correct boolean value of flag aliases', async (t) => {
     flag('--flag|-f', 'Test flag'),
     flag('--another-flag|-a', 'Test flag'),
     function (cmd) {
-      t.ok(cmd.flags['f'], 'Flag alias has correct boolean value')
-      t.ok(cmd.flags['flag'], 'Flag has correct boolean value')
-      t.ok(!cmd.flags['a'], 'Unused flag has correct boolean value')
+      t.ok(cmd.flags.f, 'Flag alias has correct boolean value')
+      t.ok(cmd.flags.flag, 'Flag has correct boolean value')
+      t.ok(!cmd.flags.a, 'Unused flag has correct boolean value')
       t.ok(!cmd.flags['another-flag'], 'Unused flag has correct boolean value')
     }
   )
@@ -985,8 +984,8 @@ test('correct non-boolean value of flag aliases', async (t) => {
     'test',
     flag('--flag|-f [val] ', 'Test flag'),
     function (cmd) {
-      t.is(cmd.flags['f'], 'val', 'Flag alias has correct value')
-      t.is(cmd.flags['flag'], 'val', 'Flag has correct value')
+      t.is(cmd.flags.f, 'val', 'Flag alias has correct value')
+      t.is(cmd.flags.flag, 'val', 'Flag has correct value')
     }
   )
 
@@ -995,4 +994,37 @@ test('correct non-boolean value of flag aliases', async (t) => {
 
   const aliasInput = ['-f', 'val']
   cmd.parse(aliasInput)
+})
+
+test('async parse error handling', async (t) => {
+  t.plan(2)
+  const cmd = command(
+    'stage',
+    flag('--dry-run', 'Performs a dry run'),
+    arg('<link>', 'App link key'),
+    sloppy({ flags: true }),
+    async function () {
+      throw new Error('test')
+    }
+  )
+  const input = ['--dry-run']
+
+  t.execution(() => cmd.parse(input))
+  t.exception(() => cmd.running, new Error('test'))
+})
+
+test('sync parse error handling', async (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    flag('--dry-run', 'Performs a dry run'),
+    arg('<link>', 'App link key'),
+    sloppy({ flags: true }),
+    function () {
+      throw new Error('test')
+    }
+  )
+  const input = ['--dry-run']
+
+  t.exception(() => cmd.parse(input, { sync: true }), new Error('test'))
 })

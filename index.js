@@ -170,7 +170,8 @@ class Command {
     return s
   }
 
-  parse (input = argv()) {
+  parse (input = argv(), opts = {}) {
+    const { sync = false } = opts
     const p = new Parser(input)
 
     let c = this._reset()
@@ -212,7 +213,15 @@ class Command {
     }
 
     if (!bail) {
-      if (c._runner !== null) c.running = runAsync(c, this)
+      if (c !== this && !c.parent) c.parent = this
+      if (c.flags.help) {
+        console.log(c.help())
+        return c
+      }
+      if (c._runner !== null) {
+        if (sync) runSync(c)
+        else c.running = runAsync(c)
+      }
       return c
     }
 
@@ -546,7 +555,6 @@ function _command (c, args) {
   return c
 }
 
-
 function bail (fn) {
   return new Data('bail', fn)
 }
@@ -581,10 +589,6 @@ function flag (help, description) {
 
 function rest (help, description) {
   return new Rest(help, description)
-}
-
-function hiddenArg (help, description) {
-  return new Arg(help, description, true)
 }
 
 function arg (help, description) {
@@ -663,12 +667,15 @@ function defaultFlag (name) {
   }
 }
 
-async function runAsync (c, parent) {
-  if (c !== parent && !c.parent) c.parent = parent
-  if (c.flags.help) {
-    console.log(c.help())
-    return
+function runSync (c) {
+  try {
+    c._runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, indices: c.indices, command: c })
+  } catch (err) {
+    c.bail(createBail(c, err.message, null, null, err))
   }
+}
+
+async function runAsync (c) {
   try {
     await c._runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, indices: c.indices, command: c })
   } catch (err) {

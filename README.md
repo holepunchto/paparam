@@ -79,13 +79,14 @@ Defines a command with a specific behavior based on the supplied modifiers such 
 - **Returns**:
   - `cmd` `<Command>`: The command object capable of parsing CLI arguments and executing associated actions.
 
-#### `cmd.parse(argv = process.argv.slice(2))`
+#### `cmd.parse(argv = process.argv.slice(2), opts)`
 
 Parses an array of command line arguments and executes the command based on the provided definition. Automatically handles '--help' or '-h' flags to display help information.
 
 - **Arguments**:
   - `argv` `<String[]>`: An array of strings representing the command line arguments. Defaults to program arguments `process.argv.slice(2)` if unspecified. If the `-h` or `--help` flag is supplied help for the related command will be shown.
-
+  - `opts` `<Object>`: Parse options
+    - `sync` `<Boolean>`: Synchronous parse, only use this with synchronous function runners. Default `false`.
 - **Returns**:
   - `null` if the parsing leads to an error (with an error output) or the command object if the command executes without errors.
 
