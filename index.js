@@ -59,10 +59,10 @@ class Parser {
       if (a.length > 2 && a[0] === '-' && a[1] === '-') {
         let j = a.indexOf('=')
         if (j === -1) j = a.length
-        const name = a.slice(2, j)
+        const inverse = a.startsWith('--no-')
+        const name = inverse ? a.slice(5, j) : a.slice(2, j)
         const value = a.slice(j + 1)
-
-        r.flag = { long: true, name, value }
+        r.flag = { long: true, name, value, inverse }
         return r
       }
 
@@ -409,8 +409,8 @@ class Command {
 
     if (def.boolean === true) {
       if (flag.value) return createBail(this, 'INVALID_FLAG', flag, null)
-      this.flags[def.name] = true
-      if (def.aliases[1]) this.flags[def.aliases[1]] = true
+      this.flags[def.name] = !flag.inverse
+      if (def.aliases[1]) this.flags[def.aliases[1]] = this.flags[def.name]
       this.indices.flags[def.name] = parser.lasti
       return null
     }

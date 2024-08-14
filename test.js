@@ -279,6 +279,48 @@ test('--no- prefixed boolean flags contain default true value', (t) => {
   cmd.parse(input)
 })
 
+test('--no- prefixed boolean flag definition', (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    summary('stage pear app'),
+    description('more info about staging pear app'),
+    header('Header text'),
+    flag('--dry-run|-d', 'View the changes without applying them'),
+    flag('--no-bare', 'Do not not apply any warmup'),
+    arg('<link>', 'App link key'),
+    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    footer('Footer text'),
+    function (cmd) {
+      t.is(cmd.flags.bare, false, 'bare flag should be false')
+    }
+  )
+
+  const input = ['--no-bare', 'pear://example', 'app', 'args']
+  cmd.parse(input)
+})
+
+test('--no- prefixed boolean flag, not --no- prefixed definition', (t) => {
+  t.plan(1)
+  const cmd = command(
+    'stage',
+    summary('stage pear app'),
+    description('more info about staging pear app'),
+    header('Header text'),
+    flag('--dry-run|-d', 'View the changes without applying them'),
+    flag('--bare', 'apply warmup'),
+    arg('<link>', 'App link key'),
+    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    footer('Footer text'),
+    function (cmd) {
+      t.is(cmd.flags.bare, false, 'bare flag should be false')
+    }
+  )
+
+  const input = ['--no-bare', 'pear://example', 'app', 'args']
+  cmd.parse(input)
+})
+
 test('string flag [optional] and provided', (t) => {
   t.plan(1)
   const cmd = command(
