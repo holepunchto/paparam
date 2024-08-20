@@ -1070,3 +1070,9 @@ test('sync parse error handling', async (t) => {
 
   t.exception(() => cmd.parse(input, { sync: true }), new Error('test'))
 })
+
+test('command with aliased flag and double dash', async (t) => {
+  const cmd = command('test', flag('--flag|-f', 'Test flag'))
+  t.plan(1)
+  t.exception(() => cmd.parse(['--f']), /UNKNOWN_FLAG: f/)
+})

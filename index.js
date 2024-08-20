@@ -393,8 +393,9 @@ class Command {
     return this
   }
 
-  _getFlag (name) {
+  _getFlag (name, flag) {
     let f = this._definedFlags.get(name)
+    if (f && flag.long && f.aliases.indexOf(name) > 0) f = undefined
     if (f === undefined && this._strictFlags === false) f = defaultFlag(name)
     return f || null
   }
@@ -404,7 +405,7 @@ class Command {
   }
 
   _onflag (flag, parser) {
-    const def = this._getFlag(flag.name)
+    const def = this._getFlag(flag.name, flag)
     if (def === null) return createBail(this, 'UNKNOWN_FLAG', flag, null)
 
     if (def.boolean === true) {
