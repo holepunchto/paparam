@@ -1076,3 +1076,26 @@ test('command with aliased flag and double dash', async (t) => {
   t.plan(1)
   t.exception(() => cmd.parse(['--f']), /UNKNOWN_FLAG: f/)
 })
+
+test('args sloppy mode, no bail', (t) => {
+  t.plan(5)
+  const cmd = command(
+    'test',
+    sloppy({ args: true, flags: true }),
+    () => t.pass('Parse does not bail')
+  )
+  const singleArgInput = ['unknown-arg']
+  cmd.parse(singleArgInput)
+
+  const multiArgInput = ['unknown-arg', 'unknown-arg']
+  cmd.parse(multiArgInput)
+
+  const noArgInput = []
+  cmd.parse(noArgInput)
+
+  const flagInput = ['--flag']
+  cmd.parse(flagInput)
+
+  const combinedInput = ['arg', '--flag', 'arg']
+  cmd.parse(combinedInput)
+})

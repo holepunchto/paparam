@@ -459,7 +459,7 @@ class Command {
   }
 
   _onrest (rest, parser) {
-    if (this._definedRest === null) {
+    if (this._definedRest === null && this._strictArgs) {
       return createBail(this, 'UNKNOWN_ARG', null, { index: this.positionals.length, value: '--' })
     }
 
