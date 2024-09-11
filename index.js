@@ -216,7 +216,7 @@ class Command {
       if (c !== this && !c.parent) c.parent = this
       if (c.flags.help) {
         console.log(c.help())
-        return c
+        return null
       }
       if (c._runner !== null) {
         if (sync) runSync(c)
