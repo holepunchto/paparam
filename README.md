@@ -78,6 +78,7 @@ Defines a command with a specific behavior based on the supplied modifiers such 
 
 - **Returns**:
   - `cmd` `<Command>`: The command object capable of parsing CLI arguments and executing associated actions.
+  - `cmd.hide()` to hide the command from help.
 
 #### `cmd.parse(argv = process.argv.slice(2), opts)`
 
@@ -172,10 +173,6 @@ After `cmd.parse` has been called, contains the indexes of each positional argum
 After `cmd.parse` has been called, contains the index of the first rest argument in the positional array.
 
 
-### `hiddenCommand(name, ...args)`
-
-Defines a command that does not display in overview or usage output. See `command` for API.
-
 ### `flag(spec, description)`
 
 Defines a flag for a command. Flags can be simple boolean switches or can expect a value.
@@ -185,18 +182,9 @@ Defines a flag for a command. Flags can be simple boolean switches or can expect
   - `description` `<String>`: A description of what the flag does.
 
 - **Returns**:
-  - `<Flag>`: A modifier that configures the command to recognize and handle the specified flag.
-
-### `hiddenFlag(spec, description)`
-
-Defines a hidden flag for a command, the flag is functional but will not show in help output.
-
-- **Arguments**:
-  - `spec` `<String>`: `--long|-l (<value> | [value])?` , e.g., `--boolean-flag|-b`, `--string-flag [optional-value]`, `--string-flag <required-value>`
-  - `description` `<String>`: A description of what the flag does.
-
-- **Returns**:
-  - `<Flag>`: A modifier that configures the command to recognize and handle the specified flag.
+  - `flag` `<Flag>`: A modifier that configures the command to recognize and handle the specified flag.
+  - `flag.hide()` to hide the flag from help.
+  - `flag.multiple()` to make this flag into an array of all passed values instead of the latest one only.
 
 ### `arg(spec, description)`
 

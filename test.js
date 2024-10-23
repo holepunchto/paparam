@@ -38,6 +38,17 @@ test('command with string flag', async (t) => {
   t.is(cmd.flags.flag, 'val')
 })
 
+test('command with string multiple flag', async (t) => {
+  const cmd = command('test', flag('--flag [val] ', 'Test flag').multiple())
+  t.plan(3)
+  cmd.parse(['--flag', 'val'])
+  t.alike(cmd.flags.flag, ['val'])
+  cmd.parse(['--flag', 'val', '--flag', 'val2'])
+  t.alike(cmd.flags.flag, ['val', 'val2'])
+  cmd.parse(['--flag', 'val', '--flag=val2'])
+  t.alike(cmd.flags.flag, ['val', 'val2'])
+})
+
 test('command with arguments', async (t) => {
   const cmd = command('test', arg('<arg>', 'Test argument'))
   t.plan(2)

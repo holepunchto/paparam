@@ -80,10 +80,10 @@ class Parser {
 }
 
 class Command {
-  constructor (parent, name, hidden = false) {
+  constructor (parent, name) {
     this.parent = parent
     this.name = name
-    this.hidden = hidden
+    this.hidden = false
     this.description = ''
     this.summary = ''
     this.header = ''
@@ -113,6 +113,11 @@ class Command {
     this._definedFlags = new Map()
     this._definedArgs = []
     this._definedRest = null
+  }
+
+  hide () {
+    this.hidden = true
+    return this
   }
 
   bail (bail) {
@@ -418,8 +423,9 @@ class Command {
 
     if (def.boolean === false) {
       if (flag.value) {
-        this.flags[def.name] = flag.value
-        if (def.aliases[1]) this.flags[def.aliases[1]] = flag.value
+        const value = def.multi ? (this.flags[def.name] || []).concat(flag.value) : flag.value
+        this.flags[def.name] = value
+        if (def.aliases[1]) this.flags[def.aliases[1]] = value
         this.indices.flags[def.name] = parser.lasti
         return null
       }
@@ -429,8 +435,10 @@ class Command {
       if (def.valueRequired && argless) {
         return createBail(this, 'INVALID_FLAG', flag, null)
       }
-      this.flags[def.name] = next?.arg
-      if (def.aliases[1]) this.flags[def.aliases[1]] = next?.arg
+
+      const value = def.multi ? (this.flags[def.name] || []).concat(next?.arg) : next?.arg
+      this.flags[def.name] = value
+      if (def.aliases[1]) this.flags[def.aliases[1]] = value
       this.indices.flags[def.name] = parser.lasti
     }
 
@@ -478,26 +486,42 @@ class Command {
 }
 
 class Flag {
-  constructor (spec, description = '', hidden) {
+  constructor (spec, description = '') {
     const { longName, shortName, aliases, boolean, help, value, valueRequired } = parseFlag(spec)
     this.name = snakeToCamel(longName || shortName)
     this.aliases = aliases
     this.boolean = boolean
     this.help = help
     this.description = description
-    this.hidden = hidden
+    this.hidden = false
+    this.multi = false
     this.value = value
     this.valueRequired = valueRequired
+  }
+
+  multiple () {
+    this.multi = true
+    return this
+  }
+
+  hide () {
+    this.hidden = true
+    return this
   }
 }
 
 class Arg {
-  constructor (help, description = '', hidden = false) {
+  constructor (help, description = '') {
     this.optional = help.startsWith('[')
     this.name = snakeToCamel(help)
     this.help = help
     this.description = description
-    this.hidden = hidden
+    this.hidden = false
+  }
+
+  hide () {
+    this.hidden = true
+    return this
   }
 
   usage () {
@@ -526,14 +550,7 @@ function argv () {
 }
 
 function command (name, ...args) {
-  return _command(new Command(null, name), args)
-}
-
-function hiddenCommand (name, ...args) {
-  return _command(new Command(null, name, true), args)
-}
-
-function _command (c, args) {
+  const c = new Command(null, name)
   for (const a of args) {
     if (a instanceof Command) {
       c._addCommand(a)
@@ -554,6 +571,11 @@ function _command (c, args) {
   c._addFlag(new Flag('--help|-h', 'Show help'))
   if (!c._runner) c._addRunner(noop)
   return c
+}
+
+// deprecated, removed soon, use.hide()
+function hiddenCommand (name, ...args) {
+  return command(name, ...args).hide()
 }
 
 function bail (fn) {
@@ -580,12 +602,13 @@ function footer (desc) {
   return new Data('footer', desc)
 }
 
+// deprecated, removed soon, use .hide()
 function hiddenFlag (help, description) {
-  return new Flag(help, description, true)
+  return flag(help, description).hide()
 }
 
 function flag (help, description) {
-  return new Flag(help, description, false)
+  return new Flag(help, description)
 }
 
 function rest (help, description) {
