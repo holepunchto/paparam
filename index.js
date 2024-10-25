@@ -502,6 +502,7 @@ class Flag {
 
   default (val) {
     this.valueDefault = val
+    this.description += ` (default: ${val})`
     return this
   }
 
