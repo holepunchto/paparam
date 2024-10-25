@@ -431,12 +431,12 @@ class Command {
       }
 
       const next = parser.next()
-      const argless = next === null || !next.arg
+      const argless = def.valueDefault === undefined && (next === null || !next.arg)
       if (def.valueRequired && argless) {
         return createBail(this, 'INVALID_FLAG', flag, null)
       }
 
-      const value = def.multi ? (this.flags[def.name] || []).concat(next?.arg) : next?.arg
+      const value = def.multi ? (this.flags[def.name] || []).concat(next?.arg) : next?.arg ?? def.valueDefault
       this.flags[def.name] = value
       if (def.aliases[1]) this.flags[def.aliases[1]] = value
       this.indices.flags[def.name] = parser.lasti
@@ -496,7 +496,13 @@ class Flag {
     this.hidden = false
     this.multi = false
     this.value = value
+    this.valueDefault = undefined
     this.valueRequired = valueRequired
+  }
+
+  default (val) {
+    this.valueDefault = val
+    return this
   }
 
   multiple () {
