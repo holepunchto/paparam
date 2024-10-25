@@ -437,6 +437,11 @@ class Command {
       }
 
       const value = def.multi ? (this.flags[def.name] || []).concat(next?.arg) : next?.arg
+
+      if (def.valueChoices && !def.valueChoices.includes(value)) {
+        return createBail(this, 'INVALID_FLAG', flag, value)
+      }
+
       this.flags[def.name] = value
       if (def.aliases[1]) this.flags[def.aliases[1]] = value
       this.indices.flags[def.name] = parser.lasti
@@ -495,12 +500,19 @@ class Flag {
     this.description = description
     this.hidden = false
     this.multi = false
+    this.valueChoices = undefined
     this.value = value
     this.valueRequired = valueRequired
   }
 
   multiple () {
     this.multi = true
+    return this
+  }
+
+  choices (values) {
+    this.valueChoices = values
+    this.description += ` (choices: ${values.join(', ')})`
     return this
   }
 

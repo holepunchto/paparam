@@ -49,6 +49,23 @@ test('command with string multiple flag', async (t) => {
   t.alike(cmd.flags.flag, ['val', 'val2'])
 })
 
+test('command with string flag with valid choice', async (t) => {
+  const choices = ['val1', 'val2', 'val3']
+  const cmd = command('test', flag('--flag [val] ', 'Test flag').choices(choices))
+  t.plan(1)
+
+  cmd.parse(['--flag', 'val2'])
+  t.is(cmd.flags.flag, 'val2')
+})
+
+test('command with string flag with invalid choice', async (t) => {
+  const choices = ['val1', 'val2', 'val3']
+  const cmd = command('test', flag('--flag [val] ', 'Test flag').choices(choices))
+  t.plan(1)
+
+  t.exception(() => cmd.parse(['--flag', 'val4']), /INVALID_FLAG: flag/)
+})
+
 test('command with arguments', async (t) => {
   const cmd = command('test', arg('<arg>', 'Test argument'))
   t.plan(2)
