@@ -59,8 +59,7 @@ test('command with string flag with valid choice', async (t) => {
 })
 
 test('command with string flag with invalid choice', async (t) => {
-  const choices = ['val1', 'val2', 'val3']
-  const cmd = command('test', flag('--flag [val] ', 'Test flag').choices(choices))
+  const cmd = command('test', flag('--flag [val] ', 'Test flag').choices('val1, val2, val3'))
   t.plan(1)
 
   t.exception(() => cmd.parse(['--flag', 'val4']), /INVALID_FLAG: flag/)

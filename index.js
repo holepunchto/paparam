@@ -511,8 +511,8 @@ class Flag {
   }
 
   choices (values) {
-    this.valueChoices = values
-    this.description += ` (choices: ${values.join(', ')})`
+    this.valueChoices = values.split(',').map(s => s.trim())
+    this.description += ` (choices: ${values})`
     return this
   }
 
