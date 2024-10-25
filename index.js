@@ -439,7 +439,7 @@ class Command {
       const value = def.multi ? (this.flags[def.name] || []).concat(next?.arg) : next?.arg
 
       if (def.valueChoices && !def.valueChoices.includes(value)) {
-        return createBail(this, 'INVALID_FLAG', flag, value)
+        return createBail(this, 'INVALID_FLAG', flag, null)
       }
 
       this.flags[def.name] = value
