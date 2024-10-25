@@ -38,7 +38,7 @@ test('command with string flag', async (t) => {
   t.is(cmd.flags.flag, 'val')
 })
 
-test.solo('command with string flag with default value', async (t) => {
+test('command with string flag with default value', async (t) => {
   const cmd = command('test', flag('--flag [val] ', 'Test flag').default('default-val'))
   t.plan(1)
   cmd.parse(['--flag'])
