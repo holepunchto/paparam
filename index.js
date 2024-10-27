@@ -432,7 +432,7 @@ class Command {
 
       const next = parser.next()
       const argless = next === null || !next.arg
-      if (def.valueRequired && !def.hasDefault && argless) {
+      if (def.valueRequired && argless && !def.hasDefault) {
         return createBail(this, 'INVALID_FLAG', flag, null)
       }
 
