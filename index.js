@@ -441,7 +441,6 @@ class Command {
       }
 
       const value = def.multi ? (this.flags[def.name] || []).concat(next?.arg) : next?.arg
-
       this.flags[def.name] = value
       if (def.aliases[1]) this.flags[def.aliases[1]] = value
       this.indices.flags[def.name] = parser.lasti
