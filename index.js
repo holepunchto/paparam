@@ -180,7 +180,6 @@ class Command {
     const p = new Parser(input)
 
     let c = this._reset()
-    console.log('🚀 ~ Command ~ parse ~ c:', c.flags)
     let bail = null
 
     const visited = [c]
@@ -391,7 +390,6 @@ class Command {
     this.indices = { flags: {}, args: {}, positionals: [], rest: undefined }
     this.running = null
 
-    console.log('🚀 ~ Command ~ _reset ~ _definedFlags:', this._definedFlags)
     for (const [name, { value }] of this._definedFlags) {
       if (name === snakeToCamel(name)) {
         this.flags[name] = value
