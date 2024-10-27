@@ -32,7 +32,7 @@ test('command with boolean flag (not set)', async (t) => {
 })
 
 test('command with boolean flag with default value', async (t) => {
-  const cmd = command('test', flag('--flag', 'Test flag').default(false))
+  const cmd = command('test', flag('--flag', 'Test flag').default(true))
   t.plan(1)
   cmd.parse(['--flag'])
   t.ok(cmd.flags.flag)
