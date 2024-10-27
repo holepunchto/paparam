@@ -180,6 +180,7 @@ class Command {
     const p = new Parser(input)
 
     let c = this._reset()
+    console.log('🚀 ~ Command ~ parse ~ c:', c.flags)
     let bail = null
 
     const visited = [c]
@@ -390,6 +391,7 @@ class Command {
     this.indices = { flags: {}, args: {}, positionals: [], rest: undefined }
     this.running = null
 
+    console.log('🚀 ~ Command ~ _reset ~ _definedFlags:', this._definedFlags)
     for (const [name, { value }] of this._definedFlags) {
       if (name === snakeToCamel(name)) {
         this.flags[name] = value
@@ -431,12 +433,12 @@ class Command {
       }
 
       const next = parser.next()
-      const argless = def.valueDefault === undefined && (next === null || !next.arg)
+      const argless = next === null || !next.arg
       if (def.valueRequired && argless) {
         return createBail(this, 'INVALID_FLAG', flag, null)
       }
 
-      const value = def.multi ? (this.flags[def.name] || []).concat(next?.arg) : next?.arg ?? def.valueDefault
+      const value = def.multi ? (this.flags[def.name] || []).concat(next?.arg) : next?.arg
       this.flags[def.name] = value
       if (def.aliases[1]) this.flags[def.aliases[1]] = value
       this.indices.flags[def.name] = parser.lasti
@@ -495,13 +497,14 @@ class Flag {
     this.description = description
     this.hidden = false
     this.multi = false
+    this.hasDefault = false
     this.value = value
-    this.valueDefault = undefined
     this.valueRequired = valueRequired
   }
 
   default (val) {
-    this.valueDefault = val
+    this.hasDefault = true
+    this.value = val
     this.description += ` (default: ${val})`
     return this
   }
