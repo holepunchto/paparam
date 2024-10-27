@@ -422,10 +422,11 @@ class Command {
     }
 
     if (def.boolean === false) {
+      if (def.valueChoices && !def.valueChoices.includes(flag.value || next?.arg)) {
+        return createBail(this, 'INVALID_FLAG', flag, null)
+      }
+
       if (flag.value) {
-        if (def.valueChoices && !def.valueChoices.includes(flag.value)) {
-          return createBail(this, 'INVALID_FLAG', flag, null)
-        }
         const value = def.multi ? (this.flags[def.name] || []).concat(flag.value) : flag.value
         this.flags[def.name] = value
         if (def.aliases[1]) this.flags[def.aliases[1]] = value
@@ -439,9 +440,6 @@ class Command {
         return createBail(this, 'INVALID_FLAG', flag, null)
       }
 
-      if (def.valueChoices && !def.valueChoices.includes(next?.arg)) {
-        return createBail(this, 'INVALID_FLAG', flag, null)
-      }
       const value = def.multi ? (this.flags[def.name] || []).concat(next?.arg) : next?.arg
 
       this.flags[def.name] = value
