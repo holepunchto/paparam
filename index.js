@@ -427,7 +427,6 @@ class Command {
         this.flags[def.name] = value
         if (def.aliases[1]) this.flags[def.aliases[1]] = value
         this.indices.flags[def.name] = parser.lasti
-        console.log('🚀 ~ Command ~ _onflag ~ this.flags:', this.flags)
         return null
       }
 
