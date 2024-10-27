@@ -427,16 +427,18 @@ class Command {
         this.flags[def.name] = value
         if (def.aliases[1]) this.flags[def.aliases[1]] = value
         this.indices.flags[def.name] = parser.lasti
+        console.log('🚀 ~ Command ~ _onflag ~ this.flags:', this.flags)
         return null
       }
 
       const next = parser.next()
       const argless = next === null || !next.arg
-      if (def.valueRequired && argless) {
+      if (def.valueRequired && !def.hasDefault && argless) {
         return createBail(this, 'INVALID_FLAG', flag, null)
       }
 
-      const value = def.multi ? (this.flags[def.name] || []).concat(next?.arg) : next?.arg
+      let nextValue = !next?.arg && def.hasDefault ? def.value : next?.arg
+      const value = def.multi ? (this.flags[def.name] || []).concat(nextValue) : (nextValue)
       this.flags[def.name] = value
       if (def.aliases[1]) this.flags[def.aliases[1]] = value
       this.indices.flags[def.name] = parser.lasti
