@@ -24,11 +24,25 @@ test('command with boolean flag', async (t) => {
   t.ok(cmd.flags.flag)
 })
 
-test('command with aliased flag', async (t) => {
-  const cmd = command('test', flag('--flag|-f', 'Test flag'))
+test('command with boolean flag (not set)', async (t) => {
+  const cmd = command('test', flag('--flag', 'Test flag'))
   t.plan(1)
-  cmd.parse(['-f'])
+  cmd.parse([])
+  t.is(cmd.flags.flag, false)
+})
+
+test('command with boolean flag with default value', async (t) => {
+  const cmd = command('test', flag('--flag', 'Test flag').default(true))
+  t.plan(1)
+  cmd.parse(['--flag'])
   t.ok(cmd.flags.flag)
+})
+
+test('command with boolean flag with default value (not set)', async (t) => {
+  const cmd = command('test', flag('--flag', 'Test flag').default(true))
+  t.plan(1)
+  cmd.parse([])
+  t.is(cmd.flags.flag, true)
 })
 
 test('command with string flag', async (t) => {
@@ -36,6 +50,41 @@ test('command with string flag', async (t) => {
   t.plan(1)
   cmd.parse(['--flag', 'val'])
   t.is(cmd.flags.flag, 'val')
+})
+
+test('command with string flag (no val)', async (t) => {
+  const cmd = command('test', flag('--flag [val] ', 'Test flag'))
+  t.plan(1)
+  cmd.parse(['--flag'])
+  t.is(cmd.flags.flag, undefined)
+})
+
+test('command with string flag (not set)', async (t) => {
+  const cmd = command('test', flag('--flag [val] ', 'Test flag'))
+  t.plan(1)
+  cmd.parse([])
+  t.is(cmd.flags.flag, undefined)
+})
+
+test('command with string flag with default value', async (t) => {
+  const cmd = command('test', flag('--flag [val] ', 'Test flag').default('default-val'))
+  t.plan(1)
+  cmd.parse(['--flag', 'val'])
+  t.is(cmd.flags.flag, 'val')
+})
+
+test('command with string flag with default value (no val)', async (t) => {
+  const cmd = command('test', flag('--flag [val] ', 'Test flag').default('default-val'))
+  t.plan(1)
+  cmd.parse(['--flag'])
+  t.is(cmd.flags.flag, 'default-val')
+})
+
+test('command with string flag with default value (not set)', async (t) => {
+  const cmd = command('test', flag('--flag [val] ', 'Test flag').default('default-val'))
+  t.plan(1)
+  cmd.parse([])
+  t.is(cmd.flags.flag, 'default-val')
 })
 
 test('command with string multiple flag', async (t) => {
@@ -47,6 +96,13 @@ test('command with string multiple flag', async (t) => {
   t.alike(cmd.flags.flag, ['val', 'val2'])
   cmd.parse(['--flag', 'val', '--flag=val2'])
   t.alike(cmd.flags.flag, ['val', 'val2'])
+})
+
+test('command with aliased flag', async (t) => {
+  const cmd = command('test', flag('--flag|-f', 'Test flag'))
+  t.plan(1)
+  cmd.parse(['-f'])
+  t.ok(cmd.flags.flag)
 })
 
 test('command with arguments', async (t) => {
