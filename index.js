@@ -423,6 +423,10 @@ class Command {
 
     if (def.boolean === false) {
       if (flag.value) {
+        if (def.valueChoices && !def.valueChoices.includes(flag.value)) {
+          return createBail(this, 'INVALID_FLAG', flag, null)
+        }
+
         const value = def.multi ? (this.flags[def.name] || []).concat(flag.value) : flag.value
         this.flags[def.name] = value
         if (def.aliases[1]) this.flags[def.aliases[1]] = value
@@ -436,7 +440,10 @@ class Command {
         return createBail(this, 'INVALID_FLAG', flag, null)
       }
 
-      let nextValue = !next?.arg && def.hasDefault ? def.value : next?.arg
+      const nextValue = !next?.arg && def.hasDefault ? def.value : next?.arg
+      if (def.valueChoices && !def.valueChoices.includes(nextValue)) {
+        return createBail(this, 'INVALID_FLAG', flag, null)
+      }
       const value = def.multi ? (this.flags[def.name] || []).concat(nextValue) : (nextValue)
       this.flags[def.name] = value
       if (def.aliases[1]) this.flags[def.aliases[1]] = value
@@ -496,6 +503,7 @@ class Flag {
     this.description = description
     this.hidden = false
     this.multi = false
+    this.valueChoices = undefined
     this.hasDefault = false
     this.value = value
     this.valueRequired = valueRequired
@@ -510,6 +518,12 @@ class Flag {
 
   multiple () {
     this.multi = true
+    return this
+  }
+
+  choices (valueChoices) {
+    this.valueChoices = valueChoices
+    this.description += ` (choices: ${valueChoices.join(', ')})`
     return this
   }
 
