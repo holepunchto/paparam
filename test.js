@@ -1192,3 +1192,16 @@ test('auto --help|-h support', async (t) => {
   }
   t.is(cmd.parse(['--help']), null)
 })
+
+test('parse - silent option', async (t) => {
+  t.plan(0)
+  const cmd = command('test')
+  const { log } = console
+  console.log = () => {
+    t.fail('Help logged')
+    console.log = log
+  }
+  const input = ['-h']
+  cmd.parse(input, { silent: true })
+  t.end()
+})
