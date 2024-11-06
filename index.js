@@ -220,7 +220,7 @@ class Command {
     if (!bail) {
       if (c !== this && !c.parent) c.parent = this
       if (c.flags.help) {
-        console.log(c.help())
+        if (!opts.silent) console.log(c.help())
         return null
       }
       if (c._runner !== null) {
