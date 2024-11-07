@@ -88,6 +88,7 @@ Parses an array of command line arguments and executes the command based on the 
   - `argv` `<String[]>`: An array of strings representing the command line arguments. Defaults to program arguments `process.argv.slice(2)` if unspecified. If the `-h` or `--help` flag is supplied help for the related command will be shown.
   - `opts` `<Object>`: Parse options
     - `sync` `<Boolean>`: Synchronous parse, only use this with synchronous function runners. Default `false`.
+    - `silent` `<Boolean>`: Suppress the help display, even if `-h` or `--help` is provided.
 - **Returns**:
   - `null` if the parsing leads to an error (with an error output) or the command object if the command executes without errors.
 
