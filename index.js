@@ -730,4 +730,4 @@ async function runAsync (c) {
   }
 }
 
-class Bail extends Error { name = ' Bail' }
+class Bail extends Error { name = 'Bail' }
