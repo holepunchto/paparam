@@ -4,8 +4,7 @@
   "description": "Strict and fair parameter papa",
   "main": "index.js",
   "scripts": {
-    "test": "brittle test.js",
-    "lint": "standard"
+    "test": "standard && brittle test.js"
   },
   "devDependencies": {
     "brittle": "^3.5.0",
