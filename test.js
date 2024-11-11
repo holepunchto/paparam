@@ -1187,7 +1187,7 @@ test('auto --help|-h support', async (t) => {
   t.plan(2)
   const { log } = console
   console.log = (content) => {
-    t.alike(content.split(/\r?\n/), [ 'test [flags]', '', 'Flags:', '  --help|-h   Show help', '' ])
+    t.alike(content.split(/\r?\n/), ['test [flags]', '', 'Flags:', '  --help|-h   Show help', ''])
     console.log = log
   }
   t.is(cmd.parse(['--help']), null)
