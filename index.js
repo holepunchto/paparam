@@ -718,7 +718,7 @@ function runSync (c) {
   try {
     c._runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, indices: c.indices, command: c })
   } catch (err) {
-    c.bail(createBail(c, err.message, null, null, err))
+    c.bail(createBail(c, err.stack, null, null, err))
   }
 }
 
@@ -726,6 +726,6 @@ async function runAsync (c) {
   try {
     await c._runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, indices: c.indices, command: c })
   } catch (err) {
-    c.bail(createBail(c, err.message, null, null, err))
+    c.bail(createBail(c, err.stack, null, null, err))
   }
 }
