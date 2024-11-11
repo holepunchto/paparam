@@ -487,9 +487,9 @@ class Command {
   _bail (bail) {
     if (typeof this._onbail === 'function') return this._onbail(bail)
     if (this.parent) return this.parent._bail(bail)
-    if (bail.flag) throw new Error(bail.reason + ': ' + bail.flag.name)
-    if (bail.arg) throw new Error(bail.reason + ': ' + bail.arg.value)
-    throw new Error(bail.reason)
+    if (bail.flag) throw new Bail(bail.reason + ': ' + bail.flag.name)
+    if (bail.arg) throw new Bail(bail.reason + ': ' + bail.arg.value)
+    throw new Bail(bail.reason)
   }
 }
 
@@ -718,7 +718,7 @@ function runSync (c) {
   try {
     c._runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, indices: c.indices, command: c })
   } catch (err) {
-    c.bail(createBail(c, err.message, null, null, err))
+    c.bail(createBail(c, err.stack, null, null, err))
   }
 }
 
@@ -726,6 +726,8 @@ async function runAsync (c) {
   try {
     await c._runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, indices: c.indices, command: c })
   } catch (err) {
-    c.bail(createBail(c, err.message, null, null, err))
+    c.bail(createBail(c, err.stack, null, null, err))
   }
 }
+
+class Bail extends Error { name = 'Bail' }
