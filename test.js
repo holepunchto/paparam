@@ -189,6 +189,13 @@ test('command parsing', async (t) => {
   t.is(cmd.args.arg, 'argumentValue')
 })
 
+test('default error on unknown rest', (t) => {
+  const cmd = command('upload')
+  const input = ['rest1', 'rest2', 'rest3']
+  t.plan(1)
+  t.exception(() => cmd.parse(input), /UNKNOWN_ARG: rest1 rest2 rest3/)
+})
+
 test('default error on unknown flag', (t) => {
   const cmd = command(
     'stage',
