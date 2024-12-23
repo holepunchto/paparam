@@ -18,6 +18,23 @@ module.exports = {
   bail
 }
 
+/**
+ * @typedef {Object} ValidatorParams
+ * @property {Command['args']} args
+ * @property {Command['flags']} flags
+ * @property {Command['positionals']} positionals
+ * @property {Command['rest']} rest
+ * @property {Command['indices']} indices
+ * @property {Command} command
+ */
+
+/**
+ * @typedef {(
+ *   validator: (p: ValidatorParams) => boolean
+ *   description: string
+ * ) => Validator} ValidatorCreator
+ */
+
 class Parser {
   constructor (argv) {
     this.argv = argv
@@ -578,6 +595,9 @@ class Data {
 }
 
 class Validator {
+  /**
+   * @type {ValidatorCreator}
+   */
   constructor (validator, description) {
     this.validator = validator
     this.description = description
@@ -660,6 +680,9 @@ function arg (help, description) {
   return new Arg(help, description)
 }
 
+/**
+ * @type {ValidatorCreator}
+ */
 function validate (validator, description) {
   return new Validator(validator, description)
 }
@@ -736,6 +759,10 @@ function defaultFlag (name) {
   }
 }
 
+/**
+ * @param {Validator} v
+ * @param {Command} c
+ */
 function runValidator (v, c) {
   try {
     const isValid = v.validator({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, indices: c.indices, command: c })

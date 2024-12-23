@@ -297,7 +297,7 @@ test('validate conflict flags', (t) => {
     'test',
     flag('--flag1'),
     flag('--flag2'),
-    validate((cmd) => !(cmd.flags.flag1 && cmd.flags.flag2), description)
+    validate((p) => !(p.flags.flag1 && p.flags.flag2), description)
   )
   const input = ['--flag1', '--flag2']
   t.plan(2)
