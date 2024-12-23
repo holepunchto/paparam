@@ -19,13 +19,14 @@ module.exports = {
 }
 
 /**
- * @typedef {Object} ValidatorParams
- * @property {Command['args']} args
- * @property {Command['flags']} flags
- * @property {Command['positionals']} positionals
- * @property {Command['rest']} rest
- * @property {Command['indices']} indices
- * @property {Command} command
+ * @typedef {{
+ *   args: Command['args']
+ *   flags: Command['flags']
+ *   positionals: Command['positionals']
+ *   rest: Command['rest']
+ *   indices: Command['indices']
+ *   command: Command
+ * }} ValidatorParams
  */
 
 /**
