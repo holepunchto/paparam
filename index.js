@@ -11,6 +11,7 @@ module.exports = {
   hiddenFlag,
   arg,
   rest,
+  validate,
   summary,
   description,
   sloppy,
@@ -98,6 +99,7 @@ class Command {
 
     this.running = null
 
+    this._validators = []
     this._runner = null
     this._onbail = null
     this._indent = ''
@@ -222,6 +224,9 @@ class Command {
       if (c.flags.help) {
         if (!opts.silent) console.log(c.help())
         return null
+      }
+      for (const v of c._validators) {
+        runValidator(v, c)
       }
       if (c._runner !== null) {
         if (sync) runSync(c)
@@ -376,6 +381,10 @@ class Command {
         break
       }
     }
+  }
+
+  _addValidator (_validator) {
+    this._validators.push(_validator)
   }
 
   _addRunner (_runner) {
@@ -568,6 +577,13 @@ class Data {
   }
 }
 
+class Validator {
+  constructor (validator, description) {
+    this.validator = validator
+    this.description = description
+  }
+}
+
 function argv () {
   return typeof process === 'undefined' ? global.Bare.argv.slice(2) : process.argv.slice(2)
 }
@@ -585,6 +601,8 @@ function command (name, ...args) {
       c._addRest(a)
     } else if (a instanceof Data) {
       c._addData(a)
+    } else if (a instanceof Validator) {
+      c._addValidator(a)
     } else if (typeof a === 'function') {
       c._addRunner(a)
     } else {
@@ -640,6 +658,10 @@ function rest (help, description) {
 
 function arg (help, description) {
   return new Arg(help, description)
+}
+
+function validate (validator, description) {
+  return new Validator(validator, description)
 }
 
 function unindent (info) {
@@ -711,6 +733,15 @@ function defaultFlag (name) {
     help: '',
     description: '',
     value: ''
+  }
+}
+
+function runValidator (v, c) {
+  try {
+    const isValid = v.validator({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, indices: c.indices, command: c })
+    if (!isValid) throw new Error(v.description)
+  } catch (err) {
+    c.bail(createBail(c, err.stack, null, null, err))
   }
 }
 

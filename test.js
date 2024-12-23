@@ -1,6 +1,6 @@
 'use strict'
 const test = require('brittle')
-const { header, command, hiddenCommand, flag, hiddenFlag, arg, argv, rest, footer, summary, description, sloppy, bail } = require('./')
+const { header, command, hiddenCommand, flag, hiddenFlag, arg, argv, rest, footer, summary, description, sloppy, bail, validate } = require('./')
 
 test('command creation', async (t) => {
   const cmd = command('test')
@@ -289,6 +289,20 @@ test('command opts - bail (custom function, throwing)', (t) => {
   t.plan(2)
   t.exception(() => cmd.parse(input))
   t.is(cmd.bailed.error.message, 'bAiL')
+})
+
+test('validate conflict flags', (t) => {
+  const description = 'flag1 and flag2 cannot be used together'
+  const cmd = command(
+    'test',
+    flag('--flag1'),
+    flag('--flag2'),
+    validate((cmd) => !(cmd.flags.flag1 && cmd.flags.flag2), description)
+  )
+  const input = ['--flag1', '--flag2']
+  t.plan(2)
+  t.exception(() => cmd.parse(input))
+  t.ok(cmd.bailed.error.message.includes(description))
 })
 
 test('command composition w/ runner ', (t) => {
