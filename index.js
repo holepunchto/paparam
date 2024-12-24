@@ -599,7 +599,7 @@ class Validator {
   /**
    * @type {ValidatorCreator}
    */
-  constructor (validator, description) {
+  constructor (validator, description = 'INVALID') {
     this.validator = validator
     this.description = description
   }
