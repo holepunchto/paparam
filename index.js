@@ -226,7 +226,7 @@ class Command {
         return null
       }
       for (const v of c._validators) {
-        runValidator(v, c)
+        runValidation(v, c)
       }
       if (c._runner !== null) {
         if (sync) runSync(c)
@@ -383,7 +383,7 @@ class Command {
     }
   }
 
-  _addValidator (_validator) {
+  _addValidation (_validator) {
     this._validators.push(_validator)
   }
 
@@ -577,8 +577,7 @@ class Data {
   }
 }
 
-class Validator {
-  /** @type {import('./types.jsdoc').ValidatorCreator} */
+class Validation {
   constructor (validator, description = 'INVALID') {
     this.validator = validator
     this.description = description
@@ -602,8 +601,8 @@ function command (name, ...args) {
       c._addRest(a)
     } else if (a instanceof Data) {
       c._addData(a)
-    } else if (a instanceof Validator) {
-      c._addValidator(a)
+    } else if (a instanceof Validation) {
+      c._addValidation(a)
     } else if (typeof a === 'function') {
       c._addRunner(a)
     } else {
@@ -661,9 +660,8 @@ function arg (help, description) {
   return new Arg(help, description)
 }
 
-/** @type {import('./types.jsdoc').ValidatorCreator} */
 function validate (validator, description) {
-  return new Validator(validator, description)
+  return new Validation(validator, description)
 }
 
 function unindent (info) {
@@ -738,11 +736,7 @@ function defaultFlag (name) {
   }
 }
 
-/**
- * @param {Validator} v
- * @param {Command} c
- */
-function runValidator (v, c) {
+function runValidation (v, c) {
   try {
     const isValid = v.validator({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, indices: c.indices, command: c })
     if (!isValid) throw new Error(v.description)
