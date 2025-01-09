@@ -577,20 +577,19 @@ class Data {
   }
 }
 
-
 /**
  * @typedef {(
-*   validator: (params: {
-*     args: Command['args']
-*     flags: Command['flags']
-*     positionals: Command['positionals']
-*     rest: Command['rest']
-*     indices: Command['indices']
-*     command: Command
-*   }) => boolean, 
-*   description: string
-* ) => Validator} ValidatorCreator
-*/
+ *   validator: (params: {
+ *     args: Command['args']
+ *     flags: Command['flags']
+ *     positionals: Command['positionals']
+ *     rest: Command['rest']
+ *     indices: Command['indices']
+ *     command: Command
+ *   }) => boolean,
+ *   description: string
+ * ) => Validator} ValidatorCreator
+ */
 
 class Validator {
   /** @type {ValidatorCreator} */
