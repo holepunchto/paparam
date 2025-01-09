@@ -577,22 +577,8 @@ class Data {
   }
 }
 
-/**
- * @typedef {(
- *   validator: (params: {
- *     args: Command['args']
- *     flags: Command['flags']
- *     positionals: Command['positionals']
- *     rest: Command['rest']
- *     indices: Command['indices']
- *     command: Command
- *   }) => boolean,
- *   description: string
- * ) => Validator} ValidatorCreator
- */
-
 class Validator {
-  /** @type {ValidatorCreator} */
+  /** @type {import('./types.jsdoc').ValidatorCreator} */
   constructor (validator, description = 'INVALID') {
     this.validator = validator
     this.description = description
@@ -675,7 +661,7 @@ function arg (help, description) {
   return new Arg(help, description)
 }
 
-/** @type {ValidatorCreator} */
+/** @type {import('./types.jsdoc').ValidatorCreator} */
 function validate (validator, description) {
   return new Validator(validator, description)
 }
