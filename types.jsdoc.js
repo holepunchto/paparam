@@ -1,3 +1,5 @@
+'use strict'
+module.exports = {}
 /**
  * @typedef {{
  *   flags: Record<string, string>
@@ -19,4 +21,3 @@
  *   description: string
  * ) => void} ValidatorCreator
  */
-export {}
