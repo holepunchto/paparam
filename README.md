@@ -219,7 +219,19 @@ Defines a validation function for the command. This function is used to enforce 
 
 - **Arguments**:
   - `validator` `<Function>`: A function that takes the parsed command object and returns a boolean indicating whether the validation passed. If the validation fails, the function should throw an error or return a string describing the validation error.
-  - `description` `<String>`: A description of what the validation does.
+    - **Parameters**:
+      - `args` `<Object>`: An object containing the parsed arguments.
+      - `flags` `<Object>`: An object containing the parsed flags.
+      - `positionals` `<Array>`: An array containing the positional arguments.
+      - `rest` `<Object>`: An object containing the rest arguments.
+      - `indices` `<Object>`: An object containing the indices of flags, arguments, positionals, and rest.
+        - `flags` `<Object>`: An object containing the indices of the flags.
+        - `args` `<Object>`: An object containing the indices of the arguments.
+        - `positionals` `<Array>`: An array containing the indices of the positional arguments.
+        - `rest` `<Number>`: The index of the rest arguments.
+      - `command` `<Command>`: The command object being validated.
+    - **Returns**:
+      - `<Boolean>`: The validator function should return true if the validation passes, indicating that the command is valid. If the validation fails, it should return false or throw an error. Returning false indicates that the command is invalid.
 
 - **Returns**:
   - `<Validation>`: A modifier that configures the command to use the specified validation function.
