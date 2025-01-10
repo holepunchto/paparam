@@ -11,20 +11,24 @@ npm install paparam
 Use `paparam` exports to compose commands together:
 
 ``` js
-const { header, footer, command, flag, arg, summary, description, rest } = require('paparam')
+const { header, footer, command, flag, arg, summary, description, rest, validate } = require('paparam')
 const run = command(
   'run',
   summary('Run an app from a link'),
   description('Run an app from a file link (or path) or from a pear link.\nOptionally supply store for custom store path'),
   flag('--store|-s [path]', 'store path'),
+  flag('--tmp-store', 'use tmp store path'),
   arg('<link>', 'link to run'),
   rest('[...app-args]'),
+  validate(({ flags }) => !(flags.store && flags.tmpStore), '--store and --tmp-store cannot be used together'),
   () => console.log('ACTION ->', 'run', run.args.link, 'with store', run.flags.store)
 )
 const cmd = command('pear', summary('pear cli'), header('Welcome to the IoP'), footer('holepunch.to | pears.com | keet.io'), run)
 cmd.parse(['--help']) // print pear help
 cmd.parse(['run', '-h']) // print run help
 cmd.parse(['run', '-s', '/path/to/store', 'pear://link']) // exec run command
+cmd.parse(['run', '--tmp-store', 'pear://link']) // exec run command
+cmd.parse(['run', '-s', '/path/to/store', '--tmp-store', 'pear://link']) // error
 ```
 
 This should output:
@@ -208,6 +212,29 @@ Defines rest arguments that are captured after all flags and named arguments.
 
 - **Returns**:
   - `<Rest>`: A modifier that configures the command to capture additional arguments not explicitly defined.
+
+### `validate(validator, description)`
+
+Defines a validation function for the command. This function is used to enforce custom validation logic on the command after parsing, such as checking the relationship of flags, arguments, rest arguments, etc.
+
+- **Arguments**:
+  - `validator` `<Function>`: A function that takes the parsed command object and returns a boolean indicating whether the validation passed. If the validation fails, the function should throw an error or return a string describing the validation error.
+    - **Parameters**:
+      - `args` `<Object>`: An object containing the parsed arguments.
+      - `flags` `<Object>`: An object containing the parsed flags.
+      - `positionals` `<Array>`: An array containing the positional arguments.
+      - `rest` `<Object>`: An object containing the rest arguments.
+      - `indices` `<Object>`: An object containing the indices of flags, arguments, positionals, and rest.
+        - `flags` `<Object>`: An object containing the indices of the flags.
+        - `args` `<Object>`: An object containing the indices of the arguments.
+        - `positionals` `<Array>`: An array containing the indices of the positional arguments.
+        - `rest` `<Number>`: The index of the rest arguments.
+      - `command` `<Command>`: The command object being validated.
+    - **Returns**:
+      - `<Boolean>`: The validator function should return true if the validation passes, indicating that the command is valid. If the validation fails, it should return false or throw an error. Returning false indicates that the command is invalid.
+
+- **Returns**:
+  - `<Validation>`: A modifier that configures the command to use the specified validation function.
 
 ### `summary(text)`
 
