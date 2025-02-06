@@ -631,7 +631,8 @@ function summary (desc) {
   return new Data('summary', desc)
 }
 
-function description (desc) {
+function description (desc, ...values) {
+  if (Array.isArray(desc)) return description(dedent(desc, values))
   return new Data('description', desc)
 }
 
@@ -734,6 +735,27 @@ function defaultFlag (name) {
     description: '',
     value: ''
   }
+}
+
+function dedent (strings, values) {
+  const raw = String.raw(strings, ...values)
+  const lines = raw.split('\n')
+
+  let minIndent = Infinity
+  for (const line of lines) {
+    let i = 0
+    while (i < line.length && line[i] === ' ') i++
+    if (i < line.length) minIndent = Math.min(minIndent, i)
+  }
+
+  if (minIndent === Infinity) return raw.trim()
+
+  let result = ''
+  for (const line of lines) {
+    result += line.length >= minIndent ? line.slice(minIndent) + '\n' : '\n'
+  }
+
+  return result.trim()
 }
 
 function runValidation (v, c) {

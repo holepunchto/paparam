@@ -9,10 +9,24 @@ test('command creation', async (t) => {
   t.execution(() => cmd.parse([]))
 })
 
-test('command with description', async (t) => {
+test('command with description(text)', async (t) => {
   const desc = 'Test command description'
   const cmd = command('test', description(desc))
   t.plan(2)
+  t.is(cmd.description, desc)
+  t.execution(() => cmd.parse([]))
+})
+
+test('command with description`text`', async (t) => {
+  const cmd = command('test', description`
+      Test
+        command
+          description
+  `)
+  t.plan(2)
+  const desc = `Test
+  command
+    description`
   t.is(cmd.description, desc)
   t.execution(() => cmd.parse([]))
 })

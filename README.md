@@ -246,9 +246,10 @@ Defines a brief summary of the command's functionality.
 - **Returns**:
   - `<Data>`: A modifier containing the summary information.
 
-### `description(text)`
+### `` description(text) | description`text` ``
 
 Defines a detailed description of the command's functionality.
+When use as a tagged template function call, automatically dedents the text.
 
 - **Arguments**:
   - `text` `<String>`: Detailed information about the command.
