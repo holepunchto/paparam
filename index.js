@@ -220,6 +220,11 @@ class Command {
     }
 
     if (!bail) {
+      const missing = this._definedArgs.filter((arg) => !arg.optional && !(arg.name in c.args))
+      if (missing.length > 0) bail = createBail(this, 'MISSING_ARGUMENT', null, { value: missing[0].help })
+    }
+
+    if (!bail) {
       if (c !== this && !c.parent) c.parent = this
       if (c.flags.help) {
         if (!opts.silent) console.log(c.help())
