@@ -134,12 +134,33 @@ test('command with aliased flag', async (t) => {
   t.ok(cmd.flags.flag)
 })
 
-test('command with arguments', async (t) => {
+test('command with <required> argument', async (t) => {
   const cmd = command('test', arg('<arg>', 'Test argument'))
   t.plan(2)
   cmd.parse(['val'])
   t.is(cmd.args.arg, 'val')
   t.is(cmd.indices.args.arg, 0)
+})
+
+test('command with <required> arg but omitted', (t) => {
+  t.plan(2)
+  const cmd = command('test', flag('-l', 'test flag'), arg('<arg>', 'Test argument'))
+  t.exception(() => cmd.parse([]), /MISSING_ARGUMENT: <arg>/)
+  t.exception(() => cmd.parse(['-l']), /MISSING_ARGUMENT: <arg>/)
+})
+
+test('command with [optional] arg and <required> arg but omitted', (t) => {
+  t.plan(2)
+  const cmd = command('test', flag('-l', 'test flag'), arg('[opt]', 'optional arg'), arg('<arg>', 'Test argument'))
+  t.exception(() => cmd.parse(['opt']), /MISSING_ARGUMENT: <arg>/)
+  t.exception(() => cmd.parse(['-l']), /MISSING_ARGUMENT: <arg>/)
+})
+
+test('command with [optional] arg that is omitted', (t) => {
+  t.plan(2)
+  const cmd = command('test', flag('-l', 'test flag'), arg('[opt]', 'optional arg'))
+  t.execution(() => cmd.parse([]))
+  t.execution(() => cmd.parse(['-l']))
 })
 
 test('command with rest arguments', async (t) => {
@@ -213,10 +234,9 @@ test('default error on unknown rest', (t) => {
 test('default error on unknown flag', (t) => {
   const cmd = command(
     'stage',
-    flag('--dry-run', 'Performs a dry run'),
-    arg('<link>', 'App link key')
+    flag('--dry-run', 'Performs a dry run')
   )
-  const input = ['--fake-flag', 'http://example.com']
+  const input = ['--dry-run', '--fake-flag']
   t.plan(1)
   t.exception(() => cmd.parse(input), /UNKNOWN_FLAG: fake-flag/)
 })
@@ -238,7 +258,7 @@ test('command opts - flags sloppy mode, no bail on unknown string flag', (t) => 
     arg('<link>', 'App link key'),
     sloppy({ flags: true })
   )
-  const input = ['--unknown-flag', 'val']
+  const input = ['--unknown-flag', 'val', 'pear://link']
   t.plan(1)
   t.execution(() => { cmd.parse(input) })
 })
@@ -248,7 +268,6 @@ test('command opts - flags sloppy mode, will parse valueless unknown flag into v
   const cmd = command(
     'stage',
     flag('--dry-run', 'Performs a dry run'),
-    arg('<link>', 'App link key'),
     sloppy({ flags: true }),
     function (cmd) {
       t.ok(Object.hasOwn(cmd.flags, 'unknown-flag'))
@@ -799,7 +818,7 @@ Footer text
 `
   t.plan(2)
   t.is(cmd.help(), expected)
-  t.is(cmd.parse(['--bare']).flags.bare, true)
+  t.is(cmd.parse(['--bare', 'pear://link']).flags.bare, true)
 })
 
 test('Command usage subcommand', (t) => {
@@ -1166,7 +1185,7 @@ test('async parse error handling', async (t) => {
       throw new Error('test')
     }
   )
-  const input = ['--dry-run']
+  const input = ['--dry-run', 'pear://link']
 
   t.execution(() => cmd.parse(input))
   t.exception(() => cmd.running, new Error('test'))
