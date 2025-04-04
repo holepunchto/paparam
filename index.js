@@ -431,7 +431,8 @@ class Command {
       if (flag.value) return createBail(this, 'INVALID_FLAG', flag, null)
       this.flags[def.name] = !flag.inverse
       if (def.aliases[1]) this.flags[def.aliases[1]] = this.flags[def.name]
-      this.indices.flags[def.name] = parser.lasti
+      def.aliases.forEach(e => { this.indices.flags[e] = parser.lasti })
+      if (!def.aliases.includes(def.name)) this.indices.flags[def.name] = parser.lasti
       return null
     }
 
@@ -444,7 +445,8 @@ class Command {
         const value = def.multi ? (this.flags[def.name] || []).concat(flag.value) : flag.value
         this.flags[def.name] = value
         if (def.aliases[1]) this.flags[def.aliases[1]] = value
-        this.indices.flags[def.name] = parser.lasti
+        def.aliases.forEach(e => { this.indices.flags[e] = parser.lasti })
+        if (!def.aliases.includes(def.name)) this.indices.flags[def.name] = parser.lasti
         return null
       }
 
@@ -461,7 +463,13 @@ class Command {
       const value = def.multi ? (this.flags[def.name] || []).concat(nextValue) : (nextValue)
       this.flags[def.name] = value
       if (def.aliases[1]) this.flags[def.aliases[1]] = value
-      this.indices.flags[def.name] = parser.lasti
+      if (def.multi) {
+        def.aliases.forEach(e => { this.indices.flags[e] = (this.indices.flags[e] || []).concat(parser.lasti) })
+        if (!def.aliases.includes(def.name)) this.indices.flags[def.name] = (this.indices.flags[def.name] || []).concat(parser.lasti)
+      } else {
+        def.aliases.forEach(e => { this.indices.flags[e] = parser.lasti })
+        if (!def.aliases.includes(def.name)) this.indices.flags[def.name] = parser.lasti
+      }
     }
 
     return null
