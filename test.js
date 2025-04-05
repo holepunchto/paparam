@@ -145,15 +145,15 @@ test('command with <required> argument', async (t) => {
 test('command with <required> arg but omitted', (t) => {
   t.plan(2)
   const cmd = command('test', flag('-l', 'test flag'), arg('<arg>', 'Test argument'))
-  t.exception(() => cmd.parse([]), /MISSING_ARGUMENT: <arg>/)
-  t.exception(() => cmd.parse(['-l']), /MISSING_ARGUMENT: <arg>/)
+  t.exception(() => cmd.parse([]), /MISSING_ARG: <arg>/)
+  t.exception(() => cmd.parse(['-l']), /MISSING_ARG: <arg>/)
 })
 
 test('command with [optional] arg and <required> arg but omitted', (t) => {
   t.plan(2)
   const cmd = command('test', flag('-l', 'test flag'), arg('[opt]', 'optional arg'), arg('<arg>', 'Test argument'))
-  t.exception(() => cmd.parse(['opt']), /MISSING_ARGUMENT: <arg>/)
-  t.exception(() => cmd.parse(['-l']), /MISSING_ARGUMENT: <arg>/)
+  t.exception(() => cmd.parse(['opt']), /MISSING_ARG: <arg>/)
+  t.exception(() => cmd.parse(['-l']), /MISSING_ARG: <arg>/)
 })
 
 test('command with [optional] arg that is omitted', (t) => {
