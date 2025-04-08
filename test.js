@@ -1259,3 +1259,55 @@ test('parse - silent option', async (t) => {
   cmd.parse(input, { silent: true })
   t.end()
 })
+
+test('indices for boolean flag and aliased boolean flag', async (t) => {
+  const cmd = command('test', flag('--bar|-b', 'Test flag A'), flag('--foo|-f', 'Test flag B'))
+  t.plan(4)
+  cmd.parse(['--bar', '-f'])
+  t.is(cmd.indices.flags.b, 0)
+  t.is(cmd.indices.flags.f, 1)
+  t.is(cmd.indices.flags.bar, 0)
+  t.is(cmd.indices.flags.foo, 1)
+})
+
+test('indices for value flag and aliased value flag', async (t) => {
+  const cmd = command('test', flag('--bar|-b [val] ', 'Test flag A'), flag('--foo|-f [val] ', 'Test flag B'))
+  t.plan(4)
+  cmd.parse(['--bar', 'val_a', '-f', 'val_b'])
+  t.is(cmd.indices.flags.b, 1)
+  t.is(cmd.indices.flags.f, 3)
+  t.is(cmd.indices.flags.bar, 1)
+  t.is(cmd.indices.flags.foo, 3)
+})
+
+test('single multiple flag index is an array', async (t) => {
+  const cmd = command('test', flag('--flag [val] ', 'Test flag').multiple())
+  t.plan(1)
+  cmd.parse(['--flag', 'val'])
+  t.alike(cmd.indices.flags.flag, [1])
+})
+
+test('multiple flag index is an array', async (t) => {
+  const cmd = command('test', flag('--flag [val] ', 'Test flag').multiple())
+  t.plan(1)
+  cmd.parse(['--flag', 'val', '--flag', 'val2'])
+  t.alike(cmd.indices.flags.flag, [1, 3])
+})
+
+test('hyphenated flag index is correct', async (t) => {
+  const cmd = command('test', flag('--flag-a|-f [val] ', 'Test flag'))
+  t.plan(3)
+  cmd.parse(['--flag-a', 'val'])
+  t.alike(cmd.indices.flags['flag-a'], 1)
+  t.alike(cmd.indices.flags.flagA, 1)
+  t.alike(cmd.indices.flags.f, 1)
+})
+
+test('multiple hyphenated flag index is an array', async (t) => {
+  const cmd = command('test', flag('--flag-a|-f [val] ', 'Test flag').multiple())
+  t.plan(3)
+  cmd.parse(['--flag-a', 'val', '-f', 'val2'])
+  t.alike(cmd.indices.flags.flagA, [1, 3])
+  t.alike(cmd.indices.flags['flag-a'], [1, 3])
+  t.alike(cmd.indices.flags.f, [1, 3])
+})
