@@ -231,7 +231,11 @@ class Command {
         return null
       }
       for (const v of c._validators) {
-        runValidation(v, c)
+        bail = runValidation(v, c)
+        if (bail) {
+          c.bail(bail)
+          return null
+        }
       }
       if (c._runner !== null) {
         if (sync) runSync(c)
@@ -591,7 +595,8 @@ class Data {
 }
 
 class Validation {
-  constructor (validator, description = 'INVALID') {
+  constructor (validator, description = 'invalid command') {
+    if (typeof validator === 'string') [description, validator] = [validator, description]
     this.validator = validator
     this.description = description
   }
@@ -774,9 +779,14 @@ function dedent (strings, values) {
 function runValidation (v, c) {
   try {
     const isValid = v.validator({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, indices: c.indices, command: c })
-    if (!isValid) throw new Error(v.description)
+    if (!isValid) {
+      const err = new Error(v.description)
+      err.bail = { reason: 'INVALID' }
+      throw err
+    }
+    return null
   } catch (err) {
-    c.bail(createBail(c, err.stack, null, null, err))
+    return createBail(c, err.bail?.reason ?? err.stack, err.bail?.flag, err.bail?.arg, err)
   }
 }
 
