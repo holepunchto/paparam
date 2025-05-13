@@ -781,7 +781,8 @@ function runValidation (v, c) {
     const isValid = v.validator({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, indices: c.indices, command: c })
     if (!isValid) {
       const err = new Error(v.description)
-      err.bail = { reason: 'INVALID' }
+      err.code = 'ERR_INVALID'
+      err.bail = { reason: v.description }
       throw err
     }
     return null
