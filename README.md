@@ -8,6 +8,36 @@ npm install paparam
 
 ## Usage
 
+### Simple Command
+
+Use `paparam` to build a simple cli parser. Here is an example app invocation from the command line:
+
+```bash
+> app -i uuid-284h43j -b peer1 -b peer2 --storage /tmp/file/place link-32832uifsdjsfda
+```
+To handle this invocation, here is the `paparam` code
+
+```js
+import { header, summary, command, flag, arg } from 'paparam'
+const cmd = command('run',
+  header('A simple example app'),
+  summary('Example app that uses a roomLink to join a room and do work.'),
+  arg('<roomLink>', 'the room link key'),
+  flag('--uuid|-i [uuid]', 'The specific schema uuid to use'),
+  flag('--user|-u [user]', 'The user name associated with the entry'),
+  flag('--storage|-s [storage]', 'Path to storage directory'),
+  flag('--blind|-b [blind]', 'Blind peer keys (can be specified multiple times)').multiple()
+)
+const args = cmd.parse() // by default will do what you want, using process.argv.slice(2)
+const user = args.flags.user // null, not provided in example
+const storagePath = args.flags.storage || tempPath() // /tmp/file/place
+const blindPeers = args.flags.blind || [] // array or null, will be ['peer1', 'peer2']
+const roomLink = cmd.args.roomLink // link-32832uifsdjsfda
+
+```
+
+### Composed Commands
+
 Use `paparam` exports to compose commands together:
 
 ``` js
