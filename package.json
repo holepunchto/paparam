@@ -4,21 +4,18 @@
   "description": "Strict and fair parameter papa",
   "main": "index.js",
   "scripts": {
-    "test": "brittle test.js",
-    "lint": "standard"
+    "format": "prettier --write .",
+    "lint": "prettier --check .",
+    "test": "brittle test.js"
   },
   "devDependencies": {
     "brittle": "^3.5.0",
-    "standard": "^17.1.0"
+    "prettier": "^3.6.2",
+    "prettier-config-holepunch": "^1.0.0"
   },
   "files": [
     "index.js"
   ],
-  "standard": {
-    "globals": [
-      "Bare"
-    ]
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/holepunchto/paparam.git"
