@@ -15,45 +15,77 @@ Use `paparam` to build a simple cli parser. Here is an example app invocation fr
 ```bash
 > app -i uuid-284h43j -b peer1 -b peer2 --storage /tmp/file/place link-32832uifsdjsfda
 ```
+
 To handle this invocation, here is the `paparam` code
 
 ```js
 import { header, summary, command, flag, arg } from 'paparam'
-const cmd = command('run',
+const cmd = command(
+  'run',
   header('A simple example app'),
   summary('Example app that uses a roomLink to join a room and do work.'),
   arg('<roomLink>', 'the room link key'),
   flag('--uuid|-i [uuid]', 'The specific schema uuid to use'),
   flag('--user|-u [user]', 'The user name associated with the entry'),
   flag('--storage|-s [storage]', 'Path to storage directory'),
-  flag('--blind|-b [blind]', 'Blind peer keys (can be specified multiple times)').multiple()
+  flag(
+    '--blind|-b [blind]',
+    'Blind peer keys (can be specified multiple times)'
+  ).multiple()
 )
 const args = cmd.parse() // by default will do what you want, using process.argv.slice(2)
 const user = args.flags.user // null, not provided in example
 const storagePath = args.flags.storage || tempPath() // /tmp/file/place
 const blindPeers = args.flags.blind || [] // array or null, will be ['peer1', 'peer2']
 const roomLink = cmd.args.roomLink // link-32832uifsdjsfda
-
 ```
 
 ### Composed Commands
 
 Use `paparam` exports to compose commands together:
 
-``` js
-const { header, footer, command, flag, arg, summary, description, rest, validate } = require('paparam')
+```js
+const {
+  header,
+  footer,
+  command,
+  flag,
+  arg,
+  summary,
+  description,
+  rest,
+  validate
+} = require('paparam')
 const run = command(
   'run',
   summary('Run an app from a link'),
-  description('Run an app from a file link (or path) or from a pear link.\nOptionally supply store for custom store path'),
+  description(
+    'Run an app from a file link (or path) or from a pear link.\nOptionally supply store for custom store path'
+  ),
   flag('--store|-s [path]', 'store path'),
   flag('--tmp-store', 'use tmp store path'),
   arg('<link>', 'link to run'),
   rest('[...app-args]'),
-  validate(({ flags }) => !(flags.store && flags.tmpStore), '--store and --tmp-store cannot be used together'),
-  () => console.log('ACTION ->', 'run', run.args.link, 'with store', run.flags.store)
+  validate(
+    ({ flags }) => !(flags.store && flags.tmpStore),
+    '--store and --tmp-store cannot be used together'
+  ),
+  () =>
+    console.log(
+      'ACTION ->',
+      'run',
+      run.args.link,
+      'with store',
+      run.flags.store
+    )
 )
-const cmd = command('pear', summary('pear cli'), header('Welcome to the IoP'), footer('holepunch.to | pears.com | keet.io'), run)
+const cmd = command(
+  'pear',
+  summary('pear cli'),
+  header('Welcome to the IoP'),
+  footer('holepunch.to | pears.com | keet.io'),
+  run
+)
 cmd.parse(['--help']) // print pear help
 cmd.parse(['run', '-h']) // print run help
 cmd.parse(['run', '-s', '/path/to/store', 'pear://link']) // exec run command
@@ -207,7 +239,6 @@ After `cmd.parse` has been called, contains the indexes of each positional argum
 #### `cmd.indices.rest` `<Number>`
 
 After `cmd.parse` has been called, contains the index of the first rest argument in the positional array.
-
 
 ### `flag(spec, description)`
 

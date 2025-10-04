@@ -1,6 +1,21 @@
 'use strict'
 const test = require('brittle')
-const { header, command, hiddenCommand, flag, hiddenFlag, arg, argv, rest, footer, summary, description, sloppy, bail, validate } = require('./')
+const {
+  header,
+  command,
+  hiddenCommand,
+  flag,
+  hiddenFlag,
+  arg,
+  argv,
+  rest,
+  footer,
+  summary,
+  description,
+  sloppy,
+  bail,
+  validate
+} = require('./')
 
 test('command creation', async (t) => {
   const cmd = command('test')
@@ -18,11 +33,14 @@ test('command with description(text)', async (t) => {
 })
 
 test('command with description`text`', async (t) => {
-  const cmd = command('test', description`
+  const cmd = command(
+    'test',
+    description`
       Test
         command
           description
-  `)
+  `
+  )
   t.plan(2)
   const desc = `Test
   command
@@ -81,21 +99,30 @@ test('command with string flag (not set)', async (t) => {
 })
 
 test('command with string flag with default value', async (t) => {
-  const cmd = command('test', flag('--flag [val] ', 'Test flag').default('default-val'))
+  const cmd = command(
+    'test',
+    flag('--flag [val] ', 'Test flag').default('default-val')
+  )
   t.plan(1)
   cmd.parse(['--flag', 'val'])
   t.is(cmd.flags.flag, 'val')
 })
 
 test('command with string flag with default value (no val)', async (t) => {
-  const cmd = command('test', flag('--flag [val] ', 'Test flag').default('default-val'))
+  const cmd = command(
+    'test',
+    flag('--flag [val] ', 'Test flag').default('default-val')
+  )
   t.plan(1)
   cmd.parse(['--flag'])
   t.is(cmd.flags.flag, 'default-val')
 })
 
 test('command with string flag with default value (not set)', async (t) => {
-  const cmd = command('test', flag('--flag [val] ', 'Test flag').default('default-val'))
+  const cmd = command(
+    'test',
+    flag('--flag [val] ', 'Test flag').default('default-val')
+  )
   t.plan(1)
   cmd.parse([])
   t.is(cmd.flags.flag, 'default-val')
@@ -113,7 +140,10 @@ test('command with string multiple flag', async (t) => {
 })
 
 test('command with string flag with valid choice', async (t) => {
-  const cmd = command('test', flag('--flag [val] ', 'Test flag').choices(['val1', 'val2', 'val3']))
+  const cmd = command(
+    'test',
+    flag('--flag [val] ', 'Test flag').choices(['val1', 'val2', 'val3'])
+  )
   t.plan(1)
 
   cmd.parse(['--flag', 'val2'])
@@ -121,7 +151,10 @@ test('command with string flag with valid choice', async (t) => {
 })
 
 test('command with string flag with invalid choice', async (t) => {
-  const cmd = command('test', flag('--flag [val] ', 'Test flag').choices(['val1', 'val2', 'val3']))
+  const cmd = command(
+    'test',
+    flag('--flag [val] ', 'Test flag').choices(['val1', 'val2', 'val3'])
+  )
   t.plan(1)
 
   t.exception(() => cmd.parse(['--flag', 'val4']), /INVALID_FLAG: flag/)
@@ -144,7 +177,11 @@ test('command with <required> argument', async (t) => {
 
 test('command with <required> arg but omitted', (t) => {
   t.plan(2)
-  const cmd = command('test', flag('-l', 'test flag'), arg('<arg>', 'Test argument'))
+  const cmd = command(
+    'test',
+    flag('-l', 'test flag'),
+    arg('<arg>', 'Test argument')
+  )
   t.exception(() => cmd.parse([]), /MISSING_ARG: <arg>/)
   t.exception(() => cmd.parse(['-l']), /MISSING_ARG: <arg>/)
 })
@@ -152,27 +189,43 @@ test('command with <required> arg but omitted', (t) => {
 // TODO: fix
 test.skip('subcommand with <required> arg but omitted', (t) => {
   t.plan(2)
-  const cmd = command('parent', command('test', flag('-l', 'test flag'), arg('<arg>', 'Test argument')))
+  const cmd = command(
+    'parent',
+    command('test', flag('-l', 'test flag'), arg('<arg>', 'Test argument'))
+  )
   t.exception(() => cmd.parse([]), /MISSING_ARG: <arg>/)
   t.exception(() => cmd.parse(['-l']), /MISSING_ARG: <arg>/)
 })
 
 test('command with [optional] arg and <required> arg but omitted', (t) => {
   t.plan(2)
-  const cmd = command('test', flag('-l', 'test flag'), arg('[opt]', 'optional arg'), arg('<arg>', 'Test argument'))
+  const cmd = command(
+    'test',
+    flag('-l', 'test flag'),
+    arg('[opt]', 'optional arg'),
+    arg('<arg>', 'Test argument')
+  )
   t.exception(() => cmd.parse(['opt']), /MISSING_ARG: <arg>/)
   t.exception(() => cmd.parse(['-l']), /MISSING_ARG: <arg>/)
 })
 
 test('command with [optional] arg that is omitted', (t) => {
   t.plan(2)
-  const cmd = command('test', flag('-l', 'test flag'), arg('[opt]', 'optional arg'))
+  const cmd = command(
+    'test',
+    flag('-l', 'test flag'),
+    arg('[opt]', 'optional arg')
+  )
   t.execution(() => cmd.parse([]))
   t.execution(() => cmd.parse(['-l']))
 })
 
 test('command with rest arguments', async (t) => {
-  const cmd = command('test', arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'))
+  const cmd = command(
+    'test',
+    arg('<arg>', 'Test argument'),
+    rest('...rest', 'rest arguments')
+  )
   cmd.parse(['val', 'some', 'more'])
   t.plan(6)
   t.is(cmd.args.arg, 'val')
@@ -184,7 +237,11 @@ test('command with rest arguments', async (t) => {
 })
 
 test('command with flags, rest arguments but no args', async (t) => {
-  const cmd = command('test', flag('-l', 'test flag'), rest('...rest', 'rest arguments'))
+  const cmd = command(
+    'test',
+    flag('-l', 'test flag'),
+    rest('...rest', 'rest arguments')
+  )
   cmd.parse(['-l', 'val', 'some', 'more'])
   t.plan(3)
   t.ok(cmd.flags.l)
@@ -224,7 +281,11 @@ test('command with footer', async (t) => {
 })
 
 test('command parsing', async (t) => {
-  const cmd = command('test', flag('--flag|-f', 'Test flag'), arg('<arg>', 'Test argument'))
+  const cmd = command(
+    'test',
+    flag('--flag|-f', 'Test flag'),
+    arg('<arg>', 'Test argument')
+  )
   const input = ['argumentValue', '-f']
   cmd.parse(input)
   t.plan(2)
@@ -240,20 +301,14 @@ test('default error on unknown rest', (t) => {
 })
 
 test('default error on unknown flag', (t) => {
-  const cmd = command(
-    'stage',
-    flag('--dry-run', 'Performs a dry run')
-  )
+  const cmd = command('stage', flag('--dry-run', 'Performs a dry run'))
   const input = ['--dry-run', '--fake-flag']
   t.plan(1)
   t.exception(() => cmd.parse(input), /UNKNOWN_FLAG: fake-flag/)
 })
 
 test('default error on unknown argument', (t) => {
-  const cmd = command(
-    'upload',
-    arg('<file>', 'File')
-  )
+  const cmd = command('upload', arg('<file>', 'File'))
   const input = ['file.txt', 'extra.txt']
   t.plan(1)
   t.exception(() => cmd.parse(input), /UNKNOWN_ARG: extra.txt/)
@@ -268,7 +323,9 @@ test('command opts - flags sloppy mode, no bail on unknown string flag', (t) => 
   )
   const input = ['--unknown-flag', 'val', 'pear://link']
   t.plan(1)
-  t.execution(() => { cmd.parse(input) })
+  t.execution(() => {
+    cmd.parse(input)
+  })
 })
 
 test('command opts - flags sloppy mode, will parse valueless unknown flag into value undefined', (t) => {
@@ -296,7 +353,9 @@ test('command opts - args sloppy mode, no bail on unknown', (t) => {
   )
   const input = ['linkarg', 'extraarg']
   t.plan(2)
-  t.execution(() => { cmd.parse(input) })
+  t.execution(() => {
+    cmd.parse(input)
+  })
   t.is(cmd.positionals[1], 'extraarg')
 })
 
@@ -324,7 +383,9 @@ test('command opts - bail (custom function, throwing)', (t) => {
   const cmd = command(
     'test',
     flag('--required', 'A required flag'),
-    bail(() => { throw new Error('bAiL') })
+    bail(() => {
+      throw new Error('bAiL')
+    })
   )
   const input = ['--unknown-flag']
   t.plan(2)
@@ -356,13 +417,20 @@ test('command composition w/ runner ', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     flag('--bare', 'Do not apply any warmup'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     footer('Footer text'),
     function (cmd) {
       t.ok(cmd, 'Runner function should be executed with args')
       t.ok(cmd.flags.dryRun, 'Dry run flag should be true')
       t.ok(cmd.flags.bare, 'Bare flag should be true')
-      t.is(cmd.args.link, 'pear://example', 'Link argument should be correctly parsed')
+      t.is(
+        cmd.args.link,
+        'pear://example',
+        'Link argument should be correctly parsed'
+      )
       t.is(cmd.rest.length, 2, 'Rest arguments correctly parsed')
       t.is(cmd.indices.flags.dryRun, 0)
       t.is(cmd.indices.flags.bare, 1)
@@ -385,7 +453,10 @@ test('boolean flags contain default false value', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     flag('--bare', 'Do not apply any warmup'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     footer('Footer text'),
     function (cmd) {
       t.ok(cmd.flags.dryRun, 'Dry run flag should be true')
@@ -409,7 +480,10 @@ test('--no- prefixed boolean flags contain default true value', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     flag('--no-bare', 'Do not not apply any warmup'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     footer('Footer text'),
     function (cmd) {
       t.ok(cmd.flags.dryRun, 'Dry run flag should be true')
@@ -433,7 +507,10 @@ test('--no- prefixed boolean flag definition', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     flag('--no-bare', 'Do not not apply any warmup'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     footer('Footer text'),
     function (cmd) {
       t.is(cmd.flags.bare, false, 'bare flag should be false')
@@ -454,7 +531,10 @@ test('--no- prefixed boolean flag, not --no- prefixed definition', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     flag('--bare', 'apply warmup'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     footer('Footer text'),
     function (cmd) {
       t.is(cmd.flags.bare, false, 'bare flag should be false')
@@ -496,7 +576,9 @@ test('string flag <required> but omitted', (t) => {
   const cmd = command(
     'stage',
     flag('--some <flag>', 'some flag'),
-    function (cmd) { /* empty */ }
+    function (cmd) {
+      /* empty */
+    }
   )
 
   t.exception(() => cmd.parse(['--some']), 'INVALID_FLAG')
@@ -547,7 +629,9 @@ test('string flag w/ alias <required> but omitted', (t) => {
   const cmd = command(
     'stage',
     flag('--some, -s <flag>', 'some flag'),
-    function (cmd) { /* empty */ }
+    function (cmd) {
+      /* empty */
+    }
   )
 
   t.exception(() => cmd.parse(['--some']), 'INVALID_FLAG')
@@ -579,13 +663,20 @@ test('nested command composition w/ subrunner', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     flag('--bare', 'Do not apply any warmup'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     foot,
     function (cmd) {
       t.ok(cmd, 'Runner function should be executed with args')
       t.ok(cmd.flags.dryRun, 'Dry run flag should be true')
       t.ok(cmd.flags.bare, 'Bare flag should be true')
-      t.is(cmd.args.link, 'pear://example', 'Link argument should be correctly parsed')
+      t.is(
+        cmd.args.link,
+        'pear://example',
+        'Link argument should be correctly parsed'
+      )
       t.is(cmd.rest.length, 2, 'Rest arguments correctly parsed')
       t.is(cmd.indices.flags.dryRun, 1)
       t.is(cmd.indices.flags.bare, 2)
@@ -594,22 +685,34 @@ test('nested command composition w/ subrunner', (t) => {
     }
   )
 
-  const app = command(
-    'pear',
-    head,
-    cmd,
-    foot
-  )
+  const app = command('pear', head, cmd, foot)
 
-  const input = ['stage', '--dry-run', '--bare', 'pear://example', 'app', 'args']
+  const input = [
+    'stage',
+    '--dry-run',
+    '--bare',
+    'pear://example',
+    'app',
+    'args'
+  ]
   app.parse(input)
 })
 
 test('argv() returns program argv', (t) => {
   const program = typeof Bare === 'undefined' ? process : Bare
   const original = program.argv
-  t.teardown(() => { program.argv = original })
-  const injected = ['program', 'entry', '--dry-run', '--bare', 'pear://example', 'app', 'args']
+  t.teardown(() => {
+    program.argv = original
+  })
+  const injected = [
+    'program',
+    'entry',
+    '--dry-run',
+    '--bare',
+    'pear://example',
+    'app',
+    'args'
+  ]
   program.argv = injected
   t.plan(1)
   t.alike(argv(), injected.slice(2))
@@ -625,20 +728,37 @@ test('command parse argv defaults to program argv', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     flag('--bare', 'Do not apply any warmup'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     footer('Footer text'),
     function (cmd) {
       t.ok(cmd, 'Runner function should be executed with args')
       t.ok(cmd.flags.dryRun, 'Dry run flag should be true')
       t.ok(cmd.flags.bare, 'Bare flag should be true')
-      t.is(cmd.args.link, 'pear://example', 'Link argument should be correctly parsed')
+      t.is(
+        cmd.args.link,
+        'pear://example',
+        'Link argument should be correctly parsed'
+      )
       t.is(cmd.rest.length, 2, 'Rest arguments correctly parsed')
     }
   )
   const program = typeof Bare === 'undefined' ? process : Bare
   const original = program.argv
-  t.teardown(() => { program.argv = original })
-  const injected = ['program', 'entry', '--dry-run', '--bare', 'pear://example', 'app', 'args']
+  t.teardown(() => {
+    program.argv = original
+  })
+  const injected = [
+    'program',
+    'entry',
+    '--dry-run',
+    '--bare',
+    'pear://example',
+    'app',
+    'args'
+  ]
   program.argv = injected
   cmd.parse()
 })
@@ -654,16 +774,14 @@ test('Command overview', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     flag('--bare', 'Do not apply any warmup'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     foot
   )
 
-  const app = command(
-    'pear',
-    head,
-    cmd,
-    foot
-  )
+  const app = command('pear', head, cmd, foot)
   const expected = `Header text
 
   pear stage ~ stage pear app
@@ -685,16 +803,14 @@ test('Command overview full', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     flag('--bare', 'Do not apply any warmup'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     foot
   )
 
-  const app = command(
-    'pear',
-    head,
-    cmd,
-    foot
-  )
+  const app = command('pear', head, cmd, foot)
   const expected = `Header text
 
   pear stage [flags] <link> [app-args...]
@@ -730,7 +846,10 @@ test('Command usage', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     flag('--bare', 'Do not apply any warmup'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     foot
   )
 
@@ -764,7 +883,10 @@ test('Command help', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     flag('--bare', 'Do not apply any warmup'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     foot
   )
 
@@ -802,7 +924,10 @@ test('hiddenFlag', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     hiddenFlag('--bare'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     foot
   )
 
@@ -840,16 +965,14 @@ test('Command usage subcommand', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     flag('--bare', 'Do not apply any warmup'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     foot
   )
 
-  const app = command(
-    'pear',
-    head,
-    cmd,
-    foot
-  )
+  const app = command('pear', head, cmd, foot)
 
   const expected = `pear stage [flags] <link> [app-args...]
 
@@ -881,16 +1004,14 @@ test('Command help subcommand', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     flag('--bare', 'Do not apply any warmup'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     foot
   )
 
-  const app = command(
-    'pear',
-    head,
-    cmd,
-    foot
-  )
+  const app = command('pear', head, cmd, foot)
 
   const expected = `pear stage [flags] <link> [app-args...]
 
@@ -922,16 +1043,14 @@ test('Command help unknown subcommand', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     flag('--bare', 'Do not apply any warmup'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     foot
   )
 
-  const app = command(
-    'pear',
-    head,
-    cmd,
-    foot
-  )
+  const app = command('pear', head, cmd, foot)
 
   t.plan(1)
   t.exception(() => app.usage('unknown'), /UNKNOWN_ARG: unknown/)
@@ -1030,7 +1149,10 @@ test('hiddenCommand', (t) => {
     flag('--dry-run|-d', 'View the changes without applying them'),
     flag('--bare', 'Do not apply any warmup'),
     arg('<link>', 'App link key'),
-    rest('[app-args...]', 'Any args passed after the link are passed to the app'),
+    rest(
+      '[app-args...]',
+      'Any args passed after the link are passed to the app'
+    ),
     foot
   )
 
@@ -1081,7 +1203,12 @@ test('subcommand parent flag', (t) => {
 })
 
 test('command with rest flags and args', async (t) => {
-  const cmd = command('test', arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'), sloppy({ flags: true }))
+  const cmd = command(
+    'test',
+    arg('<arg>', 'Test argument'),
+    rest('...rest', 'rest arguments'),
+    sloppy({ flags: true })
+  )
   t.plan(3)
   cmd.parse(['val', '--flag-a', '--flag-b', 'rest-arg'])
   t.alike(cmd.rest, ['--flag-a', '--flag-b', 'rest-arg'])
@@ -1090,7 +1217,12 @@ test('command with rest flags and args', async (t) => {
 })
 
 test('command with empty rest', async (t) => {
-  const cmd = command('test', arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'), sloppy({ flags: true }))
+  const cmd = command(
+    'test',
+    arg('<arg>', 'Test argument'),
+    rest('...rest', 'rest arguments'),
+    sloppy({ flags: true })
+  )
   t.plan(3)
   cmd.parse(['val'])
   t.alike(cmd.rest, [])
@@ -1099,7 +1231,12 @@ test('command with empty rest', async (t) => {
 })
 
 test('command with own flags, rest flags, and args', async (t) => {
-  const cmd = command('test', flag('--flag-a'), arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'))
+  const cmd = command(
+    'test',
+    flag('--flag-a'),
+    arg('<arg>', 'Test argument'),
+    rest('...rest', 'rest arguments')
+  )
   t.plan(2)
   cmd.parse(['--flag-a', 'val', '--flag-b', 'rest-arg'])
   t.alike(cmd.rest, ['--flag-b', 'rest-arg'])
@@ -1107,9 +1244,16 @@ test('command with own flags, rest flags, and args', async (t) => {
 })
 
 test('command with invalid flags, rest flags, and args', async (t) => {
-  const cmd = command('test', arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'))
+  const cmd = command(
+    'test',
+    arg('<arg>', 'Test argument'),
+    rest('...rest', 'rest arguments')
+  )
   t.plan(1)
-  t.exception(() => cmd.parse(['--flag-a', 'val', '--flag-b', 'rest-arg']), /UNKNOWN_FLAG: flag-a/)
+  t.exception(
+    () => cmd.parse(['--flag-a', 'val', '--flag-b', 'rest-arg']),
+    /UNKNOWN_FLAG: flag-a/
+  )
 })
 
 test('hyphenated-flag is parsed camelCase, with "true" value, no kebab-case', async (t) => {
@@ -1119,7 +1263,11 @@ test('hyphenated-flag is parsed camelCase, with "true" value, no kebab-case', as
     flag('--hyphenated-flag', 'Hyphenated flag'),
     function (cmd) {
       t.ok(cmd.flags.hyphenatedFlag, 'hyphenatedFlag should be true')
-      t.is(cmd.flags['hyphenated-flag'], undefined, 'hyphenated-flag should not be kebab-case')
+      t.is(
+        cmd.flags['hyphenated-flag'],
+        undefined,
+        'hyphenated-flag should not be kebab-case'
+      )
     }
   )
 
@@ -1135,7 +1283,11 @@ test('hyphenated-flag is parsed camelCase, with default "false" value, no kebab-
     flag('--hyphenated-flag', 'Hyphenated flag'),
     function (cmd) {
       t.absent(cmd.flags.hyphenatedFlag, 'hyphenatedFlag should be false')
-      t.is(cmd.flags['hyphenated-flag'], undefined, 'hyphenated-flag should not be kebab-case')
+      t.is(
+        cmd.flags['hyphenated-flag'],
+        undefined,
+        'hyphenated-flag should not be kebab-case'
+      )
     }
   )
 
@@ -1223,10 +1375,8 @@ test('command with aliased flag and double dash', async (t) => {
 
 test('args sloppy mode, no bail', (t) => {
   t.plan(5)
-  const cmd = command(
-    'test',
-    sloppy({ args: true, flags: true }),
-    () => t.pass('Parse does not bail')
+  const cmd = command('test', sloppy({ args: true, flags: true }), () =>
+    t.pass('Parse does not bail')
   )
   const singleArgInput = ['unknown-arg']
   cmd.parse(singleArgInput)
@@ -1249,7 +1399,13 @@ test('auto --help|-h support', async (t) => {
   t.plan(2)
   const { log } = console
   console.log = (content) => {
-    t.alike(content.split(/\r?\n/), ['test [flags]', '', 'Flags:', '  --help|-h   Show help', ''])
+    t.alike(content.split(/\r?\n/), [
+      'test [flags]',
+      '',
+      'Flags:',
+      '  --help|-h   Show help',
+      ''
+    ])
     console.log = log
   }
   t.is(cmd.parse(['--help']), null)
@@ -1269,7 +1425,11 @@ test('parse - silent option', async (t) => {
 })
 
 test('indices for boolean flag and aliased boolean flag', async (t) => {
-  const cmd = command('test', flag('--bar|-b', 'Test flag A'), flag('--foo|-f', 'Test flag B'))
+  const cmd = command(
+    'test',
+    flag('--bar|-b', 'Test flag A'),
+    flag('--foo|-f', 'Test flag B')
+  )
   t.plan(4)
   cmd.parse(['--bar', '-f'])
   t.is(cmd.indices.flags.b, 0)
@@ -1279,7 +1439,11 @@ test('indices for boolean flag and aliased boolean flag', async (t) => {
 })
 
 test('indices for value flag and aliased value flag', async (t) => {
-  const cmd = command('test', flag('--bar|-b [val] ', 'Test flag A'), flag('--foo|-f [val] ', 'Test flag B'))
+  const cmd = command(
+    'test',
+    flag('--bar|-b [val] ', 'Test flag A'),
+    flag('--foo|-f [val] ', 'Test flag B')
+  )
   t.plan(4)
   cmd.parse(['--bar', 'val_a', '-f', 'val_b'])
   t.is(cmd.indices.flags.b, 1)
@@ -1312,7 +1476,10 @@ test('hyphenated flag index is correct', async (t) => {
 })
 
 test('multiple hyphenated flag index is an array', async (t) => {
-  const cmd = command('test', flag('--flag-a|-f [val] ', 'Test flag').multiple())
+  const cmd = command(
+    'test',
+    flag('--flag-a|-f [val] ', 'Test flag').multiple()
+  )
   t.plan(3)
   cmd.parse(['--flag-a', 'val', '-f', 'val2'])
   t.alike(cmd.indices.flags.flagA, [1, 3])
