@@ -28,10 +28,7 @@ const cmd = command(
   flag('--uuid|-i [uuid]', 'The specific schema uuid to use'),
   flag('--user|-u [user]', 'The user name associated with the entry'),
   flag('--storage|-s [storage]', 'Path to storage directory'),
-  flag(
-    '--blind|-b [blind]',
-    'Blind peer keys (can be specified multiple times)'
-  ).multiple()
+  flag('--blind|-b [blind]', 'Blind peer keys (can be specified multiple times)').multiple()
 )
 const args = cmd.parse() // by default will do what you want, using process.argv.slice(2)
 const user = args.flags.user // null, not provided in example
@@ -70,14 +67,7 @@ const run = command(
     ({ flags }) => !(flags.store && flags.tmpStore),
     '--store and --tmp-store cannot be used together'
   ),
-  () =>
-    console.log(
-      'ACTION ->',
-      'run',
-      run.args.link,
-      'with store',
-      run.flags.store
-    )
+  () => console.log('ACTION ->', 'run', run.args.link, 'with store', run.flags.store)
 )
 const cmd = command(
   'pear',
