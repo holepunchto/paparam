@@ -140,23 +140,13 @@ class Command {
       if (command.hidden) continue
       if (full) {
         command._indent = this.header ? '  ' : ''
-        s +=
-          command._indent +
-          command._oneliner(false) +
-          EOL +
-          command._aligned() +
-          EOL
+        s += command._indent + command._oneliner(false) + EOL + command._aligned() + EOL
         command._indent = ''
       } else s += '  ' + this.name + ' ' + name + ' ~ ' + command.summary + EOL
     }
 
     if (this.footer)
-      s +=
-        EOL +
-        (Object.hasOwn(this.footer, 'overview')
-          ? this.footer.overview
-          : this.footer) +
-        EOL
+      s += EOL + (Object.hasOwn(this.footer, 'overview') ? this.footer.overview : this.footer) + EOL
 
     return s
   }
@@ -170,10 +160,7 @@ class Command {
     this._indent = ''
 
     if (this.footer)
-      s +=
-        EOL +
-        (Object.hasOwn(this.footer, 'help') ? this.footer.help : this.footer) +
-        EOL
+      s += EOL + (Object.hasOwn(this.footer, 'help') ? this.footer.help : this.footer) + EOL
 
     return s
   }
@@ -181,10 +168,7 @@ class Command {
   usage(subcommand, ...args) {
     if (subcommand) {
       const sub = this._definedCommands.get(subcommand)
-      if (!sub)
-        return this.bail(
-          createBail(this, 'UNKNOWN_ARG', null, { value: subcommand })
-        )
+      if (!sub) return this.bail(createBail(this, 'UNKNOWN_ARG', null, { value: subcommand }))
       sub.parent = this
       const str = sub.usage(...args)
       return str
@@ -242,9 +226,7 @@ class Command {
     }
 
     if (!bail) {
-      const missing = this._definedArgs.filter(
-        (arg) => !arg.optional && !(arg.name in c.args)
-      )
+      const missing = this._definedArgs.filter((arg) => !arg.optional && !(arg.name in c.args))
       if (missing.length > 0)
         bail = createBail(this, 'MISSING_ARG', null, { value: missing[0].help })
     }
@@ -276,8 +258,7 @@ class Command {
   _oneliner(short, relative) {
     const stack = [this]
     if (!relative) {
-      while (stack[stack.length - 1].parent)
-        stack.push(stack[stack.length - 1].parent)
+      while (stack[stack.length - 1].parent) stack.push(stack[stack.length - 1].parent)
     }
 
     const run = stack.reverse().map((c) => c.name || 'app')
@@ -298,15 +279,11 @@ class Command {
     const indent = this._indent
     if (this.summary) {
       l.push(['', ''])
-      l.push(
-        ...this.summary.split(EOL).map((line) => [this._indent + line, ''])
-      )
+      l.push(...this.summary.split(EOL).map((line) => [this._indent + line, '']))
     }
     if (this.description) {
       l.push(['', ''])
-      l.push(
-        ...this.description.split(EOL).map((line) => [this._indent + line, ''])
-      )
+      l.push(...this.description.split(EOL).map((line) => [this._indent + line, '']))
     }
 
     if (this._definedArgs.length > 0 || this._definedRest !== null) {
@@ -318,10 +295,7 @@ class Command {
     }
 
     if (this._definedRest) {
-      l.push([
-        indent + '  ' + this._definedRest.help,
-        this._definedRest.description
-      ])
+      l.push([indent + '  ' + this._definedRest.help, this._definedRest.description])
     }
 
     if (this._definedFlags.size) {
@@ -339,10 +313,7 @@ class Command {
       l.push([indent + this._labels.commands, ''])
       for (const c of this._definedCommands.values()) {
         if (c.hidden) continue
-        l.push([
-          indent + '  ' + c._oneliner(true, true),
-          c.summary || c.description
-        ])
+        l.push([indent + '  ' + c._oneliner(true, true), c.summary || c.description])
       }
     }
 
@@ -475,8 +446,7 @@ class Command {
       def.aliases.forEach((e) => {
         this.indices.flags[e] = parser.lasti
       })
-      if (!def.aliases.includes(def.name))
-        this.indices.flags[def.name] = parser.lasti
+      if (!def.aliases.includes(def.name)) this.indices.flags[def.name] = parser.lasti
       return null
     }
 
@@ -486,16 +456,13 @@ class Command {
           return createBail(this, 'INVALID_FLAG', flag, null)
         }
 
-        const value = def.multi
-          ? (this.flags[def.name] || []).concat(flag.value)
-          : flag.value
+        const value = def.multi ? (this.flags[def.name] || []).concat(flag.value) : flag.value
         this.flags[def.name] = value
         if (def.aliases[1]) this.flags[def.aliases[1]] = value
         def.aliases.forEach((e) => {
           this.indices.flags[e] = parser.lasti
         })
-        if (!def.aliases.includes(def.name))
-          this.indices.flags[def.name] = parser.lasti
+        if (!def.aliases.includes(def.name)) this.indices.flags[def.name] = parser.lasti
         return null
       }
 
@@ -509,27 +476,20 @@ class Command {
       if (def.valueChoices && !def.valueChoices.includes(nextValue)) {
         return createBail(this, 'INVALID_FLAG', flag, null)
       }
-      const value = def.multi
-        ? (this.flags[def.name] || []).concat(nextValue)
-        : nextValue
+      const value = def.multi ? (this.flags[def.name] || []).concat(nextValue) : nextValue
       this.flags[def.name] = value
       if (def.aliases[1]) this.flags[def.aliases[1]] = value
       if (def.multi) {
         def.aliases.forEach((e) => {
-          this.indices.flags[e] = (this.indices.flags[e] || []).concat(
-            parser.lasti
-          )
+          this.indices.flags[e] = (this.indices.flags[e] || []).concat(parser.lasti)
         })
         if (!def.aliases.includes(def.name))
-          this.indices.flags[def.name] = (
-            this.indices.flags[def.name] || []
-          ).concat(parser.lasti)
+          this.indices.flags[def.name] = (this.indices.flags[def.name] || []).concat(parser.lasti)
       } else {
         def.aliases.forEach((e) => {
           this.indices.flags[e] = parser.lasti
         })
-        if (!def.aliases.includes(def.name))
-          this.indices.flags[def.name] = parser.lasti
+        if (!def.aliases.includes(def.name)) this.indices.flags[def.name] = parser.lasti
       }
     }
 
@@ -581,15 +541,7 @@ class Command {
 
 class Flag {
   constructor(spec, description = '') {
-    const {
-      longName,
-      shortName,
-      aliases,
-      boolean,
-      help,
-      value,
-      valueRequired
-    } = parseFlag(spec)
+    const { longName, shortName, aliases, boolean, help, value, valueRequired } = parseFlag(spec)
     this.name = snakeToCamel(longName || shortName)
     this.aliases = aliases
     this.boolean = boolean
@@ -645,9 +597,8 @@ class Arg {
     if (!this.optional) return this.description
     const first = this.description.slice(0, 1)
     return (
-      (this.description && first.toLowerCase() === first
-        ? 'optional. '
-        : 'Optional. ') + this.description
+      (this.description && first.toLowerCase() === first ? 'optional. ' : 'Optional. ') +
+      this.description
     )
   }
 }
@@ -668,17 +619,14 @@ class Data {
 
 class Validation {
   constructor(validator, description = 'invalid command') {
-    if (typeof validator === 'string')
-      [description, validator] = [validator, description]
+    if (typeof validator === 'string') [description, validator] = [validator, description]
     this.validator = validator
     this.description = description
   }
 }
 
 function argv() {
-  return typeof process === 'undefined'
-    ? global.Bare.argv.slice(2)
-    : process.argv.slice(2)
+  return typeof process === 'undefined' ? global.Bare.argv.slice(2) : process.argv.slice(2)
 }
 
 function command(name, ...args) {
@@ -879,13 +827,7 @@ function runValidation(v, c) {
     }
     return null
   } catch (err) {
-    return createBail(
-      c,
-      err.bail?.reason ?? err.stack,
-      err.bail?.flag,
-      err.bail?.arg,
-      err
-    )
+    return createBail(c, err.bail?.reason ?? err.stack, err.bail?.flag, err.bail?.arg, err)
   }
 }
 
