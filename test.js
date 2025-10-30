@@ -1319,3 +1319,11 @@ test('multiple hyphenated flag index is an array', async (t) => {
   t.alike(cmd.indices.flags['flag-a'], [1, 3])
   t.alike(cmd.indices.flags.f, [1, 3])
 })
+
+test('parse run: false', async (t) => {
+  const cmd = command('test', () => t.fail())
+  t.plan(2)
+  t.is(cmd.name, 'test')
+  cmd.parse([], { run: false })
+  t.pass()
+})
