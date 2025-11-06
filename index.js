@@ -177,7 +177,7 @@ class Command {
     return s
   }
 
-  parse (input = argv(), opts = {}) {
+  parse (input = argv(), opts = { run: true }) {
     const { sync = false } = opts
     const p = new Parser(input)
 
@@ -237,7 +237,7 @@ class Command {
           return null
         }
       }
-      if (c._runner !== null) {
+      if (c._runner !== null && opts.run !== false) {
         if (sync) runSync(c)
         else c.running = runAsync(c)
       }
