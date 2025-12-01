@@ -145,8 +145,9 @@ class Command {
       } else s += '  ' + this.name + ' ' + name + ' ~ ' + command.summary + EOL
     }
 
-    if (this.footer)
+    if (this.footer) {
       s += EOL + (Object.hasOwn(this.footer, 'overview') ? this.footer.overview : this.footer) + EOL
+    }
 
     return s
   }
@@ -159,8 +160,9 @@ class Command {
     s += this.usage(...args)
     this._indent = ''
 
-    if (this.footer)
+    if (this.footer) {
       s += EOL + (Object.hasOwn(this.footer, 'help') ? this.footer.help : this.footer) + EOL
+    }
 
     return s
   }
@@ -233,6 +235,7 @@ class Command {
 
       if (missing.length > 0)
         bail = createBail(this, 'MISSING_ARG', null, { value: missing[0].help })
+      }
     }
 
     if (!bail) {
@@ -487,8 +490,9 @@ class Command {
         def.aliases.forEach((e) => {
           this.indices.flags[e] = (this.indices.flags[e] || []).concat(parser.lasti)
         })
-        if (!def.aliases.includes(def.name))
+        if (!def.aliases.includes(def.name)) {
           this.indices.flags[def.name] = (this.indices.flags[def.name] || []).concat(parser.lasti)
+        }
       } else {
         def.aliases.forEach((e) => {
           this.indices.flags[e] = parser.lasti
@@ -726,8 +730,9 @@ function trimLine(line) {
 
 function snakeToCamel(name) {
   const parts = name.match(/([a-zA-Z0-9-]+)/)[1].split(/-+/)
-  for (let i = 1; i < parts.length; i++)
+  for (let i = 1; i < parts.length; i++) {
     parts[i] = parts[i].slice(0, 1).toUpperCase() + parts[i].slice(1)
+  }
   return parts.join('')
 }
 

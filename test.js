@@ -17,6 +17,9 @@ const {
   validate
 } = require('./')
 
+// Bare.argv is readOnly so skip the tests that try to modify
+const skipIfBare = typeof Bare !== 'undefined'
+
 test('command creation', async (t) => {
   const cmd = command('test')
   t.plan(2)
@@ -598,19 +601,18 @@ test('nested command composition w/ subrunner', (t) => {
   app.parse(input)
 })
 
-test('argv() returns program argv', (t) => {
-  const program = typeof Bare === 'undefined' ? process : Bare
-  const original = program.argv
+test('argv() returns process argv', { skip: skipIfBare }, (t) => {
+  const original = process.argv
   t.teardown(() => {
-    program.argv = original
+    process.argv = original
   })
   const injected = ['program', 'entry', '--dry-run', '--bare', 'pear://example', 'app', 'args']
-  program.argv = injected
+  process.argv = injected
   t.plan(1)
   t.alike(argv(), injected.slice(2))
 })
 
-test('command parse argv defaults to program argv', (t) => {
+test('command parse argv defaults to program argv', { skip: skipIfBare }, (t) => {
   t.plan(5)
   const cmd = command(
     'stage',
@@ -630,13 +632,12 @@ test('command parse argv defaults to program argv', (t) => {
       t.is(cmd.rest.length, 2, 'Rest arguments correctly parsed')
     }
   )
-  const program = typeof Bare === 'undefined' ? process : Bare
-  const original = program.argv
+  const original = process.argv
   t.teardown(() => {
-    program.argv = original
+    process.argv = original
   })
   const injected = ['program', 'entry', '--dry-run', '--bare', 'pear://example', 'app', 'args']
-  program.argv = injected
+  process.argv = injected
   cmd.parse()
 })
 
