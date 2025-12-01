@@ -19,20 +19,20 @@ module.exports = {
 }
 
 class Parser {
-  constructor (argv) {
+  constructor(argv) {
     this.argv = argv
     this.i = 0
     this.multi = null
   }
 
-  rest () {
+  rest() {
     const rest = this.argv.slice(this.i)
     this.lasti = this.i
     this.i = this.argv.length
     return rest
   }
 
-  next () {
+  next() {
     while (true) {
       const r = {
         flag: null,
@@ -81,7 +81,7 @@ class Parser {
 }
 
 class Command {
-  constructor (parent, name) {
+  constructor(parent, name) {
     this.parent = parent
     this.name = name
     this.hidden = false
@@ -117,12 +117,12 @@ class Command {
     this._definedRest = null
   }
 
-  hide () {
+  hide() {
     this.hidden = true
     return this
   }
 
-  bail (bail) {
+  bail(bail) {
     try {
       this.bailed = { output: this._bail(bail), bail }
     } catch (err) {
@@ -132,7 +132,7 @@ class Command {
     return this.bailed
   }
 
-  overview ({ full = false } = {}) {
+  overview({ full = false } = {}) {
     let s = ''
     if (this.header) s += this.header + EOL + EOL
 
@@ -145,12 +145,14 @@ class Command {
       } else s += '  ' + this.name + ' ' + name + ' ~ ' + command.summary + EOL
     }
 
-    if (this.footer) s += EOL + (Object.hasOwn(this.footer, 'overview') ? this.footer.overview : this.footer) + EOL
+    if (this.footer) {
+      s += EOL + (Object.hasOwn(this.footer, 'overview') ? this.footer.overview : this.footer) + EOL
+    }
 
     return s
   }
 
-  help (...args) {
+  help(...args) {
     let s = ''
 
     if (this.header) s += this.header + EOL + EOL
@@ -158,12 +160,14 @@ class Command {
     s += this.usage(...args)
     this._indent = ''
 
-    if (this.footer) s += EOL + (Object.hasOwn(this.footer, 'help') ? this.footer.help : this.footer) + EOL
+    if (this.footer) {
+      s += EOL + (Object.hasOwn(this.footer, 'help') ? this.footer.help : this.footer) + EOL
+    }
 
     return s
   }
 
-  usage (subcommand, ...args) {
+  usage(subcommand, ...args) {
     if (subcommand) {
       const sub = this._definedCommands.get(subcommand)
       if (!sub) return this.bail(createBail(this, 'UNKNOWN_ARG', null, { value: subcommand }))
@@ -177,7 +181,7 @@ class Command {
     return s
   }
 
-  parse (input = argv(), opts = { run: true }) {
+  parse(input = argv(), opts = { run: true }) {
     const { sync = false } = opts
     const p = new Parser(input)
 
@@ -187,7 +191,11 @@ class Command {
     const visited = [c]
 
     while (bail === null) {
-      if (c._definedRest !== null && c.positionals.length === c._definedArgs.length && c._definedArgs.length > 0) {
+      if (
+        c._definedRest !== null &&
+        c.positionals.length === c._definedArgs.length &&
+        c._definedArgs.length > 0
+      ) {
         bail = c._onrest(p.rest(), p)
         break
       }
@@ -221,9 +229,13 @@ class Command {
 
     if (!bail) {
       const hasHelpFlag = 'help' in this.indices.flags
-      const missing = this._definedArgs.filter((arg) => (!hasHelpFlag && !arg.optional) && !(arg.name in c.args))
+      const missing = this._definedArgs.filter(
+        (arg) => !hasHelpFlag && !arg.optional && !(arg.name in c.args)
+      )
 
-      if (missing.length > 0) bail = createBail(this, 'MISSING_ARG', null, { value: missing[0].help })
+      if (missing.length > 0) {
+        bail = createBail(this, 'MISSING_ARG', null, { value: missing[0].help })
+      }
     }
 
     if (!bail) {
@@ -250,13 +262,13 @@ class Command {
     return null
   }
 
-  _oneliner (short, relative) {
+  _oneliner(short, relative) {
     const stack = [this]
     if (!relative) {
       while (stack[stack.length - 1].parent) stack.push(stack[stack.length - 1].parent)
     }
 
-    const run = stack.reverse().map(c => c.name || 'app')
+    const run = stack.reverse().map((c) => c.name || 'app')
 
     if (!short) {
       if (this._definedFlags.size > 0) run.push('[flags]')
@@ -268,7 +280,7 @@ class Command {
     return run.join(' ')
   }
 
-  _aligned (padding = 0, color = false) {
+  _aligned(padding = 0, color = false) {
     const l = []
     const visited = new Set()
     const indent = this._indent
@@ -333,14 +345,14 @@ class Command {
     return s ? s + EOL : ''
   }
 
-  _addCommand (c) {
+  _addCommand(c) {
     if (!c.header) c.header = this.header
     if (!c.footer) c.footer = this.footer
     if (!c.parent) c.parent = this
     this._definedCommands.set(c.name, c)
   }
 
-  _addFlag (f) {
+  _addFlag(f) {
     this._definedFlags.set(f.name, f)
     for (const alias of f.aliases) {
       if (alias !== f.name) {
@@ -349,15 +361,15 @@ class Command {
     }
   }
 
-  _addArg (a) {
+  _addArg(a) {
     this._definedArgs.push(a)
   }
 
-  _addRest (a) {
+  _addRest(a) {
     this._definedRest = a
   }
 
-  _addData (d) {
+  _addData(d) {
     switch (d.type) {
       case 'bail': {
         if (this._onbail !== null) throw new Error('onbail already set')
@@ -381,28 +393,29 @@ class Command {
         break
       }
       case 'footer': {
-        this.footer = (d.value !== null && typeof d.value === 'object')
-          ? { help: unindent(d.value.help || ''), overview: d.value.overview }
-          : unindent(d.value)
+        this.footer =
+          d.value !== null && typeof d.value === 'object'
+            ? { help: unindent(d.value.help || ''), overview: d.value.overview }
+            : unindent(d.value)
         break
       }
       case 'sloppy': {
-        this._strictFlags = !(d.value?.flags)
-        this._strictArgs = !(d.value?.args)
+        this._strictFlags = !d.value?.flags
+        this._strictArgs = !d.value?.args
         break
       }
     }
   }
 
-  _addValidation (_validator) {
+  _addValidation(_validator) {
     this._validators.push(_validator)
   }
 
-  _addRunner (_runner) {
+  _addRunner(_runner) {
     this._runner = _runner
   }
 
-  _reset () {
+  _reset() {
     this.flags = {}
     this.args = {}
     this.positionals = []
@@ -418,18 +431,18 @@ class Command {
     return this
   }
 
-  _getFlag (name, flag) {
+  _getFlag(name, flag) {
     let f = this._definedFlags.get(name)
     if (f && flag.long && f.aliases.indexOf(name) > 0) f = undefined
     if (f === undefined && this._strictFlags === false) f = defaultFlag(name)
     return f || null
   }
 
-  _getCommand (name) {
+  _getCommand(name) {
     return this._definedCommands.get(name) || null
   }
 
-  _onflag (flag, parser) {
+  _onflag(flag, parser) {
     const def = this._getFlag(flag.name, flag)
     if (def === null) return createBail(this, 'UNKNOWN_FLAG', flag, null)
 
@@ -437,7 +450,9 @@ class Command {
       if (flag.value) return createBail(this, 'INVALID_FLAG', flag, null)
       this.flags[def.name] = !flag.inverse
       if (def.aliases[1]) this.flags[def.aliases[1]] = this.flags[def.name]
-      def.aliases.forEach(e => { this.indices.flags[e] = parser.lasti })
+      def.aliases.forEach((e) => {
+        this.indices.flags[e] = parser.lasti
+      })
       if (!def.aliases.includes(def.name)) this.indices.flags[def.name] = parser.lasti
       return null
     }
@@ -451,7 +466,9 @@ class Command {
         const value = def.multi ? (this.flags[def.name] || []).concat(flag.value) : flag.value
         this.flags[def.name] = value
         if (def.aliases[1]) this.flags[def.aliases[1]] = value
-        def.aliases.forEach(e => { this.indices.flags[e] = parser.lasti })
+        def.aliases.forEach((e) => {
+          this.indices.flags[e] = parser.lasti
+        })
         if (!def.aliases.includes(def.name)) this.indices.flags[def.name] = parser.lasti
         return null
       }
@@ -466,14 +483,20 @@ class Command {
       if (def.valueChoices && !def.valueChoices.includes(nextValue)) {
         return createBail(this, 'INVALID_FLAG', flag, null)
       }
-      const value = def.multi ? (this.flags[def.name] || []).concat(nextValue) : (nextValue)
+      const value = def.multi ? (this.flags[def.name] || []).concat(nextValue) : nextValue
       this.flags[def.name] = value
       if (def.aliases[1]) this.flags[def.aliases[1]] = value
       if (def.multi) {
-        def.aliases.forEach(e => { this.indices.flags[e] = (this.indices.flags[e] || []).concat(parser.lasti) })
-        if (!def.aliases.includes(def.name)) this.indices.flags[def.name] = (this.indices.flags[def.name] || []).concat(parser.lasti)
+        def.aliases.forEach((e) => {
+          this.indices.flags[e] = (this.indices.flags[e] || []).concat(parser.lasti)
+        })
+        if (!def.aliases.includes(def.name)) {
+          this.indices.flags[def.name] = (this.indices.flags[def.name] || []).concat(parser.lasti)
+        }
       } else {
-        def.aliases.forEach(e => { this.indices.flags[e] = parser.lasti })
+        def.aliases.forEach((e) => {
+          this.indices.flags[e] = parser.lasti
+        })
         if (!def.aliases.includes(def.name)) this.indices.flags[def.name] = parser.lasti
       }
     }
@@ -481,7 +504,7 @@ class Command {
     return null
   }
 
-  _onarg (arg, parser) {
+  _onarg(arg, parser) {
     const info = { index: this.positionals.length, value: arg }
     if (this._definedArgs.length <= this.positionals.length) {
       if (this._strictArgs === false) {
@@ -502,9 +525,12 @@ class Command {
     return null
   }
 
-  _onrest (rest, parser) {
+  _onrest(rest, parser) {
     if (this._definedRest === null && this._strictArgs) {
-      return createBail(this, 'UNKNOWN_ARG', null, { index: this.positionals.length, value: rest.join(' ') })
+      return createBail(this, 'UNKNOWN_ARG', null, {
+        index: this.positionals.length,
+        value: rest.join(' ')
+      })
     }
 
     this.rest = rest
@@ -512,7 +538,7 @@ class Command {
     return null
   }
 
-  _bail (bail) {
+  _bail(bail) {
     if (typeof this._onbail === 'function') return this._onbail(bail)
     if (this.parent) return this.parent._bail(bail)
     if (bail.flag) throw new Bail(bail.reason + ': ' + bail.flag.name)
@@ -522,7 +548,7 @@ class Command {
 }
 
 class Flag {
-  constructor (spec, description = '') {
+  constructor(spec, description = '') {
     const { longName, shortName, aliases, boolean, help, value, valueRequired } = parseFlag(spec)
     this.name = snakeToCamel(longName || shortName)
     this.aliases = aliases
@@ -537,32 +563,32 @@ class Flag {
     this.valueRequired = valueRequired
   }
 
-  default (val) {
+  default(val) {
     this.hasDefault = true
     this.value = val
     this.description += ` (default: ${val})`
     return this
   }
 
-  multiple () {
+  multiple() {
     this.multi = true
     return this
   }
 
-  choices (valueChoices) {
+  choices(valueChoices) {
     this.valueChoices = valueChoices
     this.description += ` (choices: ${valueChoices.join(', ')})`
     return this
   }
 
-  hide () {
+  hide() {
     this.hidden = true
     return this
   }
 }
 
 class Arg {
-  constructor (help, description = '') {
+  constructor(help, description = '') {
     this.optional = help.startsWith('[')
     this.name = snakeToCamel(help)
     this.help = help
@@ -570,45 +596,48 @@ class Arg {
     this.hidden = false
   }
 
-  hide () {
+  hide() {
     this.hidden = true
     return this
   }
 
-  usage () {
+  usage() {
     if (!this.optional) return this.description
     const first = this.description.slice(0, 1)
-    return (this.description && first.toLowerCase() === first ? 'optional. ' : 'Optional. ') + this.description
+    return (
+      (this.description && first.toLowerCase() === first ? 'optional. ' : 'Optional. ') +
+      this.description
+    )
   }
 }
 
 class Rest {
-  constructor (help, description = '') {
+  constructor(help, description = '') {
     this.help = help
     this.description = description
   }
 }
 
 class Data {
-  constructor (type, value) {
+  constructor(type, value) {
     this.type = type
     this.value = value
   }
 }
 
 class Validation {
-  constructor (validator, description = 'invalid command') {
+  constructor(validator, description = 'invalid command') {
     if (typeof validator === 'string') [description, validator] = [validator, description]
     this.validator = validator
     this.description = description
   }
 }
 
-function argv () {
+function argv() {
   return typeof process === 'undefined' ? global.Bare.argv.slice(2) : process.argv.slice(2)
 }
 
-function command (name, ...args) {
+function command(name, ...args) {
   const c = new Command(null, name)
   for (const a of args) {
     if (a instanceof Command) {
@@ -635,57 +664,57 @@ function command (name, ...args) {
 }
 
 // deprecated, removed soon, use.hide()
-function hiddenCommand (name, ...args) {
+function hiddenCommand(name, ...args) {
   return command(name, ...args).hide()
 }
 
-function bail (fn) {
+function bail(fn) {
   return new Data('bail', fn)
 }
 
-function sloppy (opts) {
+function sloppy(opts) {
   return new Data('sloppy', opts)
 }
 
-function summary (desc) {
+function summary(desc) {
   return new Data('summary', desc)
 }
 
-function description (desc, ...values) {
+function description(desc, ...values) {
   if (Array.isArray(desc)) return description(dedent(desc, values))
   return new Data('description', desc)
 }
 
-function header (desc) {
+function header(desc) {
   return new Data('header', desc)
 }
 
-function footer (desc) {
+function footer(desc) {
   return new Data('footer', desc)
 }
 
 // deprecated, removed soon, use .hide()
-function hiddenFlag (help, description) {
+function hiddenFlag(help, description) {
   return flag(help, description).hide()
 }
 
-function flag (help, description) {
+function flag(help, description) {
   return new Flag(help, description)
 }
 
-function rest (help, description) {
+function rest(help, description) {
   return new Rest(help, description)
 }
 
-function arg (help, description) {
+function arg(help, description) {
   return new Arg(help, description)
 }
 
-function validate (validator, description) {
+function validate(validator, description) {
   return new Validation(validator, description)
 }
 
-function unindent (info) {
+function unindent(info) {
   const lines = info.split('\n').filter(trimLine)
   if (!lines.length) return ''
   const indent = lines[0].match(/^(\s*)/)[1]
@@ -695,19 +724,30 @@ function unindent (info) {
   return s.trimEnd()
 }
 
-function trimLine (line) {
+function trimLine(line) {
   return line.trim()
 }
 
-function snakeToCamel (name) {
+function snakeToCamel(name) {
   const parts = name.match(/([a-zA-Z0-9-]+)/)[1].split(/-+/)
-  for (let i = 1; i < parts.length; i++) parts[i] = parts[i].slice(0, 1).toUpperCase() + parts[i].slice(1)
+  for (let i = 1; i < parts.length; i++) {
+    parts[i] = parts[i].slice(0, 1).toUpperCase() + parts[i].slice(1)
+  }
   return parts.join('')
 }
 
-function parseFlag (help) {
+function parseFlag(help) {
   const parts = help.split(/[| ]/)
-  const result = { longName: null, shortName: null, aliases: [], boolean: true, help, value: null, inverse: false, valueRequired: false }
+  const result = {
+    longName: null,
+    shortName: null,
+    aliases: [],
+    boolean: true,
+    help,
+    value: null,
+    inverse: false,
+    valueRequired: false
+  }
   for (const p of parts) {
     result.inverse = p.startsWith('--no-')
     if (p.startsWith('--')) {
@@ -738,15 +778,15 @@ function parseFlag (help) {
   return result
 }
 
-function trimFlag (s) {
+function trimFlag(s) {
   return s.replace(/(^[^0-9\w]+)|([^0-9\w]+$)/g, '')
 }
 
-function createBail (command, reason, flag, arg, err) {
+function createBail(command, reason, flag, arg, err) {
   return { command, reason, flag, arg, err }
 }
 
-function defaultFlag (name) {
+function defaultFlag(name) {
   return {
     name,
     aliases: [name],
@@ -757,7 +797,7 @@ function defaultFlag (name) {
   }
 }
 
-function dedent (strings, values) {
+function dedent(strings, values) {
   const raw = String.raw(strings, ...values)
   const lines = raw.split('\n')
 
@@ -778,9 +818,16 @@ function dedent (strings, values) {
   return result.trim()
 }
 
-function runValidation (v, c) {
+function runValidation(v, c) {
   try {
-    const isValid = v.validator({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, indices: c.indices, command: c })
+    const isValid = v.validator({
+      args: c.args,
+      flags: c.flags,
+      positionals: c.positionals,
+      rest: c.rest,
+      indices: c.indices,
+      command: c
+    })
     if (!isValid) {
       const err = new Error(v.description)
       err.code = 'ERR_INVALID'
@@ -793,20 +840,36 @@ function runValidation (v, c) {
   }
 }
 
-function runSync (c) {
+function runSync(c) {
   try {
-    c._runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, indices: c.indices, command: c })
+    c._runner({
+      args: c.args,
+      flags: c.flags,
+      positionals: c.positionals,
+      rest: c.rest,
+      indices: c.indices,
+      command: c
+    })
   } catch (err) {
     c.bail(createBail(c, err.stack, null, null, err))
   }
 }
 
-async function runAsync (c) {
+async function runAsync(c) {
   try {
-    await c._runner({ args: c.args, flags: c.flags, positionals: c.positionals, rest: c.rest, indices: c.indices, command: c })
+    await c._runner({
+      args: c.args,
+      flags: c.flags,
+      positionals: c.positionals,
+      rest: c.rest,
+      indices: c.indices,
+      command: c
+    })
   } catch (err) {
     c.bail(createBail(c, err.stack, null, null, err))
   }
 }
 
-class Bail extends Error { name = 'Bail' }
+class Bail extends Error {
+  name = 'Bail'
+}
