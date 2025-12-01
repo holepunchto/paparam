@@ -1295,5 +1295,5 @@ test('parse run: false', async (t) => {
 
 test('help flag should ignore required args', (t) => {
   const cmd = command('test', arg('<foo>'))
-  t.execution(() =>  cmd.parse(['--help'], { silent: true }))
+  t.execution(() => cmd.parse(['--help'], { silent: true }))
 })

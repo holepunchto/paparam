@@ -233,7 +233,7 @@ class Command {
         (arg) => !hasHelpFlag && !arg.optional && !(arg.name in c.args)
       )
 
-      if (missing.length > 0)
+      if (missing.length > 0) {
         bail = createBail(this, 'MISSING_ARG', null, { value: missing[0].help })
       }
     }
