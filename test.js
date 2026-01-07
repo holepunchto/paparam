@@ -1297,3 +1297,113 @@ test('help flag should ignore required args', (t) => {
   const cmd = command('test', arg('<foo>'))
   t.execution(() => cmd.parse(['--help'], { silent: true }))
 })
+
+test('definition object - basic modifiers + help output', (t) => {
+  t.plan(7)
+
+  const cmd = command({
+    name: 'pear',
+    summary: 'pear cli',
+    header: 'Welcome',
+    footer: 'Bye',
+    'flag --log': 'log',
+    'flag --multi [val]': ['multi', { multiple: true }],
+    'flag --choices [val]': ['choices', { choices: ['a', 'b', 'c'] }],
+    'flag --hidden': ['hidden', { hide: true }],
+    'arg <req>': 'required',
+    rest: '[...args]'
+  })
+
+  cmd.parse(['--log', '--choices', 'b', '--multi', 'x', '--multi=y', 'REQ', 'r1', 'r2'])
+  t.ok(cmd.flags.log)
+  t.is(cmd.flags.choices, 'b')
+  t.alike(cmd.flags.multi, ['x', 'y'])
+  t.is(cmd.args.req, 'REQ')
+  t.alike(cmd.rest, ['r1', 'r2'])
+
+  const help = cmd.help()
+  t.ok(help.includes('--log'))
+  t.absent(help.includes('--hidden'))
+})
+
+test('definition object - nested subcommand via { command: {...} }', (t) => {
+  t.plan(5)
+
+  const app = command({
+    name: 'pear',
+    summary: 'pear cli',
+    header: 'Header text',
+    footer: 'Footer text',
+    command: {
+      name: 'run',
+      summary: 'run sum',
+      'arg <link|channel>': 'link to run',
+      'flag --store|-s [path]': 'store path'
+    }
+  })
+
+  t.execution(() => app.parse(['run', '-s', '/tmp', 'pear://link'], { run: false }))
+
+  const sub = app.parse(['run', '-s', '/tmp', 'pear://link'], { run: false })
+  t.is(sub.name, 'run')
+  t.is(sub.args.link, 'pear://link')
+  t.is(sub.flags.store, '/tmp')
+
+  const usage = app.usage('run')
+  t.ok(usage.includes('pear run'))
+})
+
+test('add() - adds modifiers after creation and parses', (t) => {
+  t.plan(7)
+
+  const cmd = command('t')
+  cmd.add(
+    flag('--a', 'a'),
+    flag('--multi [v]', 'm').multiple(),
+    arg('<x>', 'x'),
+    rest('[...r]', 'r')
+  )
+
+  cmd.parse(['--a', '--multi', '1', '--multi=2', 'X', 'r1', 'r2'])
+  t.ok(cmd.flags.a)
+  t.alike(cmd.flags.multi, ['1', '2'])
+  t.is(cmd.args.x, 'X')
+  t.alike(cmd.rest, ['r1', 'r2'])
+
+  const help = cmd.help()
+  t.ok(help.includes('--a'))
+  t.ok(help.includes('--multi'))
+  t.ok(help.includes('--help|-h'))
+})
+
+test('add() - accepts definition object + applies adjusters', async (t) => {
+  t.plan(5)
+
+  const cmd = command('lazy-add')
+  await new Promise((resolve) => setImmediate(resolve))
+  cmd.add({
+    'flag --multiple [v]': ['m', { multiple: true }],
+    'flag --hidden': ['hidden', { hide: true }],
+    'arg <req>': 'req'
+  })
+
+  cmd.parse(['--multiple', 'a', '--multiple=b', 'R'])
+  t.alike(cmd.flags.multiple, ['a', 'b'])
+  t.is(cmd.args.req, 'R')
+
+  const help = cmd.help()
+  t.ok(help.includes('--multiple'))
+  t.absent(help.includes('--hidden'))
+  t.ok(help.includes('--help|-h'))
+})
+
+test('add() - runner replacement', (t) => {
+  t.plan(2)
+
+  const cmd = command('t', () => t.fail('old runner should not run'))
+  cmd.add(() => t.pass('new runner ran'))
+  cmd.parse([])
+
+  cmd.add(() => t.pass('runner replaced again'))
+  cmd.parse([])
+})
