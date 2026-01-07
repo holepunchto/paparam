@@ -30,11 +30,18 @@ const cmd = command(
   flag('--storage|-s [storage]', 'Path to storage directory'),
   flag('--blind|-b [blind]', 'Blind peer keys (can be specified multiple times)').multiple()
 )
-const args = cmd.parse() // by default will do what you want, using process.argv.slice(2)
-const user = args.flags.user // null, not provided in example
-const storagePath = args.flags.storage || tempPath() // /tmp/file/place
-const blindPeers = args.flags.blind || [] // array or null, will be ['peer1', 'peer2']
-const roomLink = cmd.args.roomLink // link-32832uifsdjsfda
+const program = cmd.parse() // default args: process.argv.slice(2)
+if (program === null) throw new Error('missing arg')
+console.log('user', program.flags.user)
+console.log('storagePath', program.flags.storage || '/tmp')
+console.log('blindPeers', program.flags.blind || [])
+console.log('roomLink', program.roomLink)
+cmd.add(flag('--another', 'lazy added'))
+cmd.add({
+  '--more': 'via description object',
+  '--modifiers': ['are defined with array [desc, opts]', { multiple: true }]
+})
+cmd.parse(['-h'])
 ```
 
 ### Composed Commands
@@ -42,17 +49,7 @@ const roomLink = cmd.args.roomLink // link-32832uifsdjsfda
 Use `paparam` exports to compose commands together:
 
 ```js
-const {
-  header,
-  footer,
-  command,
-  flag,
-  arg,
-  summary,
-  description,
-  rest,
-  validate
-} = require('paparam')
+const { header, footer, command, flag, arg, summary, description, rest } = require('./')
 const run = command(
   'run',
   summary('Run an app from a link'),
@@ -60,18 +57,18 @@ const run = command(
     'Run an app from a file link (or path) or from a pear link.\nOptionally supply store for custom store path'
   ),
   flag('--store|-s [path]', 'store path'),
-  flag('--tmp-store', 'use tmp store path'),
-  arg('<link>', 'link to run'),
+  arg('<link|channel>', 'link to run'),
   rest('[...app-args]'),
-  validate(
-    ({ flags }) => !(flags.store && flags.tmpStore),
-    '--store and --tmp-store cannot be used together'
-  ),
-  () => console.log('ACTION ->', 'run', run.args.link, 'with store', run.flags.store)
+  () => console.log('ACTION ->', 'run', run.args.link, 'flags:', run.flags)
 )
 const cmd = command(
   'pear',
   summary('pear cli'),
+  {
+    // definition objects can also be used with form {[modifier <arg1>]: '<arg2>' | ['<arg2>', adjusters {...}]}:
+    'flag --log': 'log',
+    header: 'Welcome to the IoP'
+  },
   header('Welcome to the IoP'),
   footer('holepunch.to | pears.com | keet.io'),
   run
@@ -79,8 +76,10 @@ const cmd = command(
 cmd.parse(['--help']) // print pear help
 cmd.parse(['run', '-h']) // print run help
 cmd.parse(['run', '-s', '/path/to/store', 'pear://link']) // exec run command
-cmd.parse(['run', '--tmp-store', 'pear://link']) // exec run command
-cmd.parse(['run', '-s', '/path/to/store', '--tmp-store', 'pear://link']) // error
+
+run.add(flag('--pre-io', 'Show stdout & stderr of pre scripts')) // update command
+
+cmd.parse(['run', '-s', '/path/to/store', '--pre-io', 'pear://link']) // exec run command
 ```
 
 This should output:
@@ -93,7 +92,8 @@ Welcome to the IoP
   pear cli
 
   Flags:
-    --help|-h   print help
+    --log       log
+    --help|-h   Show help
 
   Commands:
     run         Run an app from a link
@@ -102,7 +102,7 @@ holepunch.to | pears.com | keet.io
 
 Welcome to the IoP
 
-  run [flags] <link> [...app-args]
+  pear run [flags] <link|channel> [...app-args]
 
   Run an app from a link
 
@@ -110,16 +110,23 @@ Welcome to the IoP
   Optionally supply store for custom store path
 
   Arguments:
-    <link>              link to run
-  [...app-args]
+    <link|channel>      link to run
+    [...app-args]
 
   Flags:
     --store|-s [path]   store path
-    --help|-h           print help
+    --help|-h           Show help
 
 holepunch.to | pears.com | keet.io
 
-ACTION -> run pear://link with store /path/to/store
+ACTION -> run pear://link flags: { store: '/path/to/store', s: '/path/to/store', help: false, h: false }
+ACTION -> run pear://link flags: {
+  store: '/path/to/store',
+  s: '/path/to/store',
+  help: false,
+  h: false,
+  preIo: true
+}
 ```
 
 ## API
@@ -130,11 +137,20 @@ Defines a command with a specific behavior based on the supplied modifiers such 
 
 - **Arguments**:
   - `name` `<String>`: The name of the command.
+  - `...args` `<Modifier> | <Command> | <Object> | <Function>`: Supply modifiers and subcommands as arguments. Supply a [definition object](#definition-object) to declaratively define modifiers. Supply a single function argument as the command runner.
+
+- **Returns**:
+  - `cmd` `<Command>`: The command object capable of parsing CLI arguments and executing associated actions.
+
+#### `cmd.add(...args)`
+
+Update command with additional modifiers & subcommands. A runner function may also be added, but only one runner is supported so will in that case replace the prior command runner function.
+
+- **Arguments**:
   - `...args` `<Modifier> | <Command> | <Function>`: Supply modifiers and subcommands as arguments. Supply a single function argument as the command runner.
 
 - **Returns**:
   - `cmd` `<Command>`: The command object capable of parsing CLI arguments and executing associated actions.
-  - `cmd.hide()` to hide the command from help.
 
 #### `cmd.parse(argv = process.argv.slice(2), opts)`
 
@@ -336,6 +352,46 @@ Set the bail handler to `fn`.
 ### `sloppy(opts)`
 
 Configures the command to be non-strict when parsing unknown flags or arguments.
+
+### Definition Object
+
+The `command` function can also accept plain objects with the following form:
+
+```
+  {[modifier <arg1>]: '<arg2>' | ['<arg2>', adjusters {...}]}
+```
+
+`modifier`: names of exported functions designed to passed to `command` function such as `flag(...)`, `arg(...)`, `summary(...)` and so on.
+`<arg1>`: first arg passed, e.g. `flag('--some value') -> 'flag --some value'`, `rest('[...args]') -> 'rest [...args]'`
+`<arg2>`: second arg passed to modifier `flag('--some value', 'some flag') -> {'flag --some value': 'some flag'}`
+`['<arg2>', adjusters {...}]`: adjusters are methods on modifiers, such as `flag.multiple()`, `flag.choices(...)`, `flag.hide()` and `arg.hide()`. For adjusters with args the value should be the arg eg `{choices: ['a', 'b', 'c']}`, otherwise set to `true` to enable `{ multiple: true }`
+
+Example:
+
+```js
+import { command } from 'paparam'
+const cmd = command({
+  name: 'pear',
+  summary: 'summary text',
+  description: 'description text',
+  header: 'header text',
+  footer: 'footer text',
+  'flag --define flag': 'describe flag',
+  'flag --define multiflag': ['describe flag', { multiple: true }],
+  'flag --define hidden-flag': ['describe flag', { hide: true }],
+  'flag --define choices': ['describe flag', { choices: ['a', 'b', 'c'] }],
+  'arg <required>': 'required arg',
+  'hidden [arg]': ['hidden optional arg', { hide: true }],
+  rest: '[...args]',
+  command: {
+    name: 'run',
+    summary: 'a subcommand'
+  }
+})
+cmd.parse(['-h'])
+```
+
+This is a useful format for supporting JSON-based definitions of commands.
 
 ## License
 

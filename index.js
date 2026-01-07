@@ -98,6 +98,7 @@ class Command {
     this.indices = { flags: {}, args: {}, positionals: [], rest: undefined }
 
     this.running = null
+    this.argv = null
 
     this._validators = []
     this._runner = null
@@ -182,7 +183,7 @@ class Command {
   }
 
   parse(input = argv(), opts = { run: true }) {
-    const { sync = false } = opts
+    const { sync = false, bails = true } = opts
     const p = new Parser(input)
 
     let c = this._reset()
@@ -227,6 +228,9 @@ class Command {
       bail = c._onrest(p.rest(), p)
     }
 
+    if (c !== this && !c.parent) c.parent = this
+    if (c.parent) c.parent.current = c
+
     if (!bail) {
       const hasHelpFlag = 'help' in this.indices.flags
       const missing = this._definedArgs.filter(
@@ -239,7 +243,6 @@ class Command {
     }
 
     if (!bail) {
-      if (c !== this && !c.parent) c.parent = this
       if (c.flags.help) {
         if (!opts.silent) console.log(c.help())
         return null
@@ -247,18 +250,19 @@ class Command {
       for (const v of c._validators) {
         bail = runValidation(v, c)
         if (bail) {
-          c.bail(bail)
+          if (bails) c.bail(bail)
           return null
         }
       }
       if (c._runner !== null && opts.run !== false) {
+        c.argv = input
         if (sync) runSync(c)
         else c.running = runAsync(c)
       }
       return c
     }
 
-    c.bail(bail)
+    if (bails) c.bail(bail)
     return null
   }
 
@@ -345,6 +349,53 @@ class Command {
     return s ? s + EOL : ''
   }
 
+  add(...args) {
+    const c = this
+    for (const a of args) {
+      if (a instanceof Command) {
+        c._addCommand(a)
+      } else if (a instanceof Flag) {
+        c._addFlag(a)
+      } else if (a instanceof Arg) {
+        c._addArg(a)
+      } else if (a instanceof Rest) {
+        c._addRest(a)
+      } else if (a instanceof Data) {
+        c._addData(a)
+      } else if (a instanceof Validation) {
+        c._addValidation(a)
+      } else if (typeof a === 'function') {
+        c._addRunner(a)
+      } else if (a !== null && Array.isArray(a) === false && typeof a === 'object') {
+        c._addDefinition(a)
+      } else {
+        throw new Error('Unknown arg: ' + a)
+      }
+    }
+    c._addFlag(new Flag('--help|-h', 'Show help'))
+    if (!c._runner) c._addRunner(noop)
+    return c
+  }
+
+  _addDefinition(c) {
+    for (const [def, dsc] of Object.entries(c)) {
+      const [definer, ...definition] = def.split(' ')
+      const define = module.exports[definer]
+      if (typeof define === 'function') {
+        const [description, modifiers = {}] = Array.isArray(dsc) ? dsc : [dsc]
+        const mod =
+          definition.length === 0 ? define(description) : define(definition.join(' '), description)
+        for (const [modifier, value] of Object.entries(modifiers)) {
+          if (typeof mod[modifier] === 'function') {
+            if (value === true) mod[modifier]()
+            else if (value !== false) mod[modifier](value)
+          }
+        }
+        this.add(mod)
+      }
+    }
+  }
+
   _addCommand(c) {
     if (!c.header) c.header = this.header
     if (!c.footer) c.footer = this.footer
@@ -422,7 +473,7 @@ class Command {
     this.rest = null
     this.indices = { flags: {}, args: {}, positionals: [], rest: undefined }
     this.running = null
-
+    this.argv = null
     for (const [name, { value }] of this._definedFlags) {
       if (name === snakeToCamel(name)) {
         this.flags[name] = value
@@ -638,28 +689,17 @@ function argv() {
 }
 
 function command(name, ...args) {
-  const c = new Command(null, name)
-  for (const a of args) {
-    if (a instanceof Command) {
-      c._addCommand(a)
-    } else if (a instanceof Flag) {
-      c._addFlag(a)
-    } else if (a instanceof Arg) {
-      c._addArg(a)
-    } else if (a instanceof Rest) {
-      c._addRest(a)
-    } else if (a instanceof Data) {
-      c._addData(a)
-    } else if (a instanceof Validation) {
-      c._addValidation(a)
-    } else if (typeof a === 'function') {
-      c._addRunner(a)
-    } else {
-      throw new Error('Unknown arg: ' + a)
-    }
+  if (
+    name !== null &&
+    typeof name === 'object' &&
+    Object.getPrototypeOf(name) === Object.prototype
+  ) {
+    const arg = name
+    args.unshift(arg)
+    name = arg.name
   }
-  c._addFlag(new Flag('--help|-h', 'Show help'))
-  if (!c._runner) c._addRunner(noop)
+  const c = new Command(null, name)
+  c.add(...args)
   return c
 }
 
@@ -848,6 +888,7 @@ function runSync(c) {
       positionals: c.positionals,
       rest: c.rest,
       indices: c.indices,
+      argv: c.argv,
       command: c
     })
   } catch (err) {
@@ -863,6 +904,7 @@ async function runAsync(c) {
       positionals: c.positionals,
       rest: c.rest,
       indices: c.indices,
+      argv: c.argv,
       command: c
     })
   } catch (err) {
