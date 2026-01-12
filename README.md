@@ -35,7 +35,7 @@ if (program === null) throw new Error('missing arg')
 console.log('user', program.flags.user)
 console.log('storagePath', program.flags.storage || '/tmp')
 console.log('blindPeers', program.flags.blind || [])
-console.log('roomLink', program.roomLink)
+console.log('roomLink', program.args.roomLink)
 cmd.add(flag('--another', 'lazy added'))
 cmd.add({
   '--more': 'via description object',
