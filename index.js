@@ -158,7 +158,8 @@ class Command {
 
     if (this.header) s += this.header + EOL + EOL
     this._indent = this.header ? '  ' : ''
-    s += this.usage(...args)
+    const output = this.usage(...args)
+    s += typeof output === 'string' ? output : ''
     this._indent = ''
 
     if (this.footer) {
