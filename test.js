@@ -1331,17 +1331,17 @@ test('definition object - nested subcommand via { command: {...} }', (t) => {
 
   const app = command({
     name: 'pear',
-    'command run': [{
+    'command run': {
       name: 'run',
       summary: 'run sum',
       'arg <link|channel>': 'link to run',
       'flag --store|-s [path]': 'store path'
-    }],
-    'command gc': [{
+    },
+    'command gc': {
       name: 'gc',
       'flag --all|-a': 'gc all',
       'flag --dry-run|-d': 'dry run gc'
-    }],
+    },
   })
 
   t.execution(() => app.parse(['run', '-s', '/tmp', 'pear://link'], { run: false }))
