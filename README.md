@@ -49,7 +49,7 @@ cmd.parse(['-h'])
 Use `paparam` exports to compose commands together:
 
 ```js
-const { header, footer, command, flag, arg, summary, description, rest } = require('./')
+const { header, footer, command, flag, arg, summary, description, rest } = require('paparam')
 const run = command(
   'run',
   summary('Run an app from a link'),
