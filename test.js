@@ -1327,30 +1327,43 @@ test('definition object - basic modifiers + help output', (t) => {
 })
 
 test('definition object - nested subcommand via { command: {...} }', (t) => {
-  t.plan(5)
+  t.plan(9)
 
   const app = command({
     name: 'pear',
-    summary: 'pear cli',
-    header: 'Header text',
-    footer: 'Footer text',
-    command: {
+    'command run': {
       name: 'run',
       summary: 'run sum',
       'arg <link|channel>': 'link to run',
       'flag --store|-s [path]': 'store path'
-    }
+    },
+    'command gc': {
+      name: 'gc',
+      'flag --all|-a': 'gc all',
+      'flag --dry-run|-d': 'dry run gc'
+    },
   })
 
   t.execution(() => app.parse(['run', '-s', '/tmp', 'pear://link'], { run: false }))
 
-  const sub = app.parse(['run', '-s', '/tmp', 'pear://link'], { run: false })
-  t.is(sub.name, 'run')
-  t.is(sub.args.link, 'pear://link')
-  t.is(sub.flags.store, '/tmp')
+  {
+    const sub = app.parse(['run', '-s', '/tmp', 'pear://link'], { run: false })
+    t.is(sub.name, 'run')
+    t.is(sub.args.link, 'pear://link')
+    t.is(sub.flags.store, '/tmp')
 
-  const usage = app.usage('run')
-  t.ok(usage.includes('pear run'))
+    const usage = app.usage('run')
+    t.ok(usage.includes('pear run'))
+  }
+  {
+    const sub = app.parse(['gc', '-a'], { run: false })
+    t.is(sub.name, 'gc')
+    t.is(sub.flags.all, true)
+    t.is(sub.flags['dry-run'], undefined)
+
+    const usage = app.usage('gc')
+    t.ok(usage.includes('pear gc'))
+  }
 })
 
 test('add() - adds modifiers after creation and parses', (t) => {
