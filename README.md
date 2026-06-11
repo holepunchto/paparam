@@ -173,6 +173,16 @@ Generates and returns help text for the command. Can take subcommand names as ar
 
 Returns help text without header or footer. Can take subcommand names as arguments to generate help for a specific subcommand path.
 
+#### `cmd.hint(text)`
+
+Adds extended, free-form help text for the command (e.g., longer guidance beyond the one-line summary, caveats, examples). Tools can surface it on demand.
+
+- **Arguments**:
+  - `text` `<String>`: Extended help text for the command.
+
+- **Returns**:
+  - `cmd` `<Command>`: The command object (chainable).
+
 #### `cmd.overview({ full = false })`
 
 Returns a string with a command overview. Set `full` to `true` to include detailed usage for each command.
@@ -258,6 +268,7 @@ Defines a flag for a command. Flags can be simple boolean switches or can expect
   - `flag` `<Flag>`: A modifier that configures the command to recognize and handle the specified flag.
   - `flag.hide()` to hide the flag from help.
   - `flag.multiple()` to make this flag into an array of all passed values instead of the latest one only.
+  - `flag.hint(text)` to add extended, free-form help text for this flag (e.g., caveats, examples). Tools can surface it on demand.
 
 ### `arg(spec, description)`
 
@@ -269,6 +280,7 @@ Defines a positional argument for a command.
 
 - **Returns**:
   - `<Arg>`: A modifier that configures the command to accept and process the specified argument.
+  - `arg.hint(text)` to add extended, free-form help text for this argument.
 
 ### `rest(spec, description)`
 
@@ -280,6 +292,7 @@ Defines rest arguments that are captured after all flags and named arguments.
 
 - **Returns**:
   - `<Rest>`: A modifier that configures the command to capture additional arguments not explicitly defined.
+  - `rest.hint(text)` to add extended, free-form help text for the rest arguments.
 
 ### `validate(validator, description)`
 
