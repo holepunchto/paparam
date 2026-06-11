@@ -1407,3 +1407,29 @@ test('add() - runner replacement', (t) => {
   cmd.add(() => t.pass('runner replaced again'))
   cmd.parse([])
 })
+
+test('.hint(text) stores extended help and chains, without disturbing parsing', (t) => {
+  t.plan(8)
+
+  const f = flag('--fuel [fuel]', 'drive type').hint('Antimatter is experimental.')
+  t.is(f.hintText, 'Antimatter is experimental.', 'flag hint stored')
+
+  const a = arg('<vehicle>', 'hull id').hint('e.g. MRDN-7')
+  t.is(a.hintText, 'e.g. MRDN-7', 'arg hint stored')
+
+  const r = rest('[extra...]', 'passthrough').hint('forwarded verbatim')
+  t.is(r.hintText, 'forwarded verbatim', 'rest hint stored')
+
+  const cmd = command('launch', flag('--x'), () => {}).hint('Gets a hull off the ground.')
+  t.is(cmd.hintText, 'Gets a hull off the ground.', 'command hint stored')
+
+  t.is(flag('--y').hintText, '', 'hint defaults to empty')
+  const chained = flag('--z [z]', 'z')
+  t.is(chained.hint('note'), chained, 'hint() is chainable')
+
+  const c2 = command('t', arg('<v>', 'v').hint('h'), flag('--m [m]', 'm').hint('h2'), (c) => {
+    t.is(c.args.v, 'hello', 'arg still parses with a hint')
+    t.is(c.flags.m, 'x', 'flag still parses with a hint')
+  })
+  c2.parse(['hello', '--m', 'x'])
+})

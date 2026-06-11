@@ -89,6 +89,7 @@ class Command {
     this.summary = ''
     this.header = ''
     this.footer = ''
+    this.hintText = ''
 
     this.flags = {}
     this.args = {}
@@ -120,6 +121,12 @@ class Command {
 
   hide() {
     this.hidden = true
+    return this
+  }
+
+  // Extended, free-form help for this command (see Flag.hint).
+  hint(text) {
+    this.hintText = String(text ?? '')
     return this
   }
 
@@ -607,12 +614,20 @@ class Flag {
     this.boolean = boolean
     this.help = help
     this.description = description
+    this.hintText = ''
     this.hidden = false
     this.multi = false
     this.valueChoices = undefined
     this.hasDefault = false
     this.value = value
     this.valueRequired = valueRequired
+  }
+
+  // Extended, free-form help for this flag — longer guidance beyond the one-line
+  // description (e.g. caveats, examples). Tools can surface it on demand.
+  hint(text) {
+    this.hintText = String(text ?? '')
+    return this
   }
 
   default(val) {
@@ -645,7 +660,14 @@ class Arg {
     this.name = snakeToCamel(help)
     this.help = help
     this.description = description
+    this.hintText = ''
     this.hidden = false
+  }
+
+  // Extended, free-form help for this argument (see Flag.hint).
+  hint(text) {
+    this.hintText = String(text ?? '')
+    return this
   }
 
   hide() {
@@ -667,6 +689,13 @@ class Rest {
   constructor(help, description = '') {
     this.help = help
     this.description = description
+    this.hintText = ''
+  }
+
+  // Extended, free-form help for the rest arguments (see Flag.hint).
+  hint(text) {
+    this.hintText = String(text ?? '')
+    return this
   }
 }
 
