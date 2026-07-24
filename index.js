@@ -233,13 +233,13 @@ class Command {
     if (c.parent) c.parent.current = c
 
     if (!bail) {
-      const hasHelpFlag = 'help' in this.indices.flags
-      const missing = this._definedArgs.filter(
+      const hasHelpFlag = 'help' in c.indices.flags
+      const missing = c._definedArgs.filter(
         (arg) => !hasHelpFlag && !arg.optional && !(arg.name in c.args)
       )
 
       if (missing.length > 0) {
-        bail = createBail(this, 'MISSING_ARG', null, { value: missing[0].help })
+        bail = createBail(c, 'MISSING_ARG', null, { value: missing[0].help })
       }
     }
 

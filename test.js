@@ -170,15 +170,15 @@ test('command with <required> arg but omitted', (t) => {
   t.exception(() => cmd.parse(['-l']), /MISSING_ARG: <arg>/)
 })
 
-// TODO: fix
-test.skip('subcommand with <required> arg but omitted', (t) => {
-  t.plan(2)
+test('subcommand with <required> arg but omitted', (t) => {
+  t.plan(3)
   const cmd = command(
     'parent',
     command('test', flag('-l', 'test flag'), arg('<arg>', 'Test argument'))
   )
-  t.exception(() => cmd.parse([]), /MISSING_ARG: <arg>/)
-  t.exception(() => cmd.parse(['-l']), /MISSING_ARG: <arg>/)
+  t.exception(() => cmd.parse(['test']), /MISSING_ARG: <arg>/)
+  t.exception(() => cmd.parse(['test', '-l']), /MISSING_ARG: <arg>/)
+  t.is(cmd.parse(['test', '--help'], { silent: true }), null)
 })
 
 test('command with [optional] arg and <required> arg but omitted', (t) => {
