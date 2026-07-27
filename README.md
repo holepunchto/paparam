@@ -162,6 +162,7 @@ Parses an array of command line arguments and executes the command based on the 
     - `sync` `<Boolean>`: Synchronous parse, only use this with synchronous function runners. Default `false`.
     - `silent` `<Boolean>`: Suppress the help display, even if `-h` or `--help` is provided.
     - `run` `<Boolean>`: If false, prevents the command runner from being executed.
+    - `bails` `<Boolean>`: If false, suppresses parse errors from being passed to the command bail handler and returns `null` instead. Default `true`.
 - **Returns**:
   - `null` if the parsing leads to an error (with an error output) or the command object if the command executes without errors.
 
