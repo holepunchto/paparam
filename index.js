@@ -601,7 +601,8 @@ class Command {
 
 class Flag {
   constructor(spec, description = '') {
-    const { longName, shortName, aliases, boolean, help, value, inverse, valueRequired } = parseFlag(spec)
+    const { longName, shortName, aliases, boolean, help, value, inverse, valueRequired } =
+      parseFlag(spec)
     this.name = snakeToCamel(longName || shortName)
     this.aliases = aliases
     this.boolean = boolean
