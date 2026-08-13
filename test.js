@@ -1216,6 +1216,81 @@ test('auto --help|-h support', async (t) => {
   t.is(cmd.parse(['--help']), null)
 })
 
+test('help --json support', (t) => {
+  const cmd = command('test', command('help'))
+  t.plan(1)
+  const { log } = console
+  console.log = (help) => {
+    t.is(JSON.parse(help).name, 'test')
+    console.log = log
+  }
+  cmd.parse(['help', '--json'])
+})
+
+test('help --json outputs flags and commands', (t) => {
+  const cmd = command(
+    'pear',
+    command(
+      'stage',
+      summary('stage pear app'),
+      description('more info\nabout staging pear app'),
+      arg('<link>', 'App link key'),
+      flag('--dry-run|-d', 'View the changes without applying them'),
+      command('run', summary('Run app'))
+    ),
+    command('help')
+  )
+  const expected = `pear stage [flags] <link> [command]
+
+stage pear app
+
+more info
+about staging pear app
+
+Arguments:
+  <link>         App link key
+
+Flags:
+  --dry-run|-d   View the changes without applying them
+  --help|-h      Show help
+
+Commands:
+  run            Run app
+`
+  const expectedJson = {
+    name: 'stage',
+    summary: 'stage pear app',
+    description: 'more info about staging pear app',
+    args: { '<link>': 'App link key' },
+    flags: {
+      '--dry-run|-d': 'View the changes without applying them',
+      '--help|-h': 'Show help'
+    },
+    commands: {
+      run: {
+        name: 'run',
+        summary: 'Run app',
+        description: '',
+        args: {},
+        flags: { '--help|-h': 'Show help' },
+        commands: {}
+      }
+    }
+  }
+  t.plan(2)
+  const { log } = console
+  console.log = (help) => {
+    t.is(help, expected)
+    console.log = log
+  }
+  cmd.parse(['stage', '--help'])
+  console.log = (help) => {
+    t.alike(JSON.parse(help), expectedJson)
+    console.log = log
+  }
+  cmd.parse(['help', '--json', 'stage'])
+})
+
 test('parse - silent option', async (t) => {
   t.plan(0)
   const cmd = command('test')

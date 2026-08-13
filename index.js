@@ -176,6 +176,29 @@ class Command {
     return s
   }
 
+  _json() {
+    const json = {
+      name: this.name,
+      summary: this.summary,
+      description: this.description,
+      args: {},
+      flags: {},
+      commands: {}
+    }
+    for (const arg of this._definedArgs) {
+      if (!arg.hidden) json.args[arg.help] = arg.description
+    }
+    if (this._definedRest) json.args[this._definedRest.help] = this._definedRest.description
+    for (const flag of this._definedFlags.values()) {
+      if (!flag.hidden) json.flags[flag.help] = flag.description
+    }
+    for (const [name, command] of this._definedCommands) {
+      if (command.hidden) continue
+      json.commands[name] = command._json()
+    }
+    return json
+  }
+
   usage(subcommand, ...args) {
     if (subcommand) {
       const sub = this._definedCommands.get(subcommand)
@@ -192,6 +215,11 @@ class Command {
 
   parse(input = argv(), opts = { run: true }) {
     const { sync = false, bails = true } = opts
+    const json = input.includes('--json') && this._getCommand(input[0])?.name === 'help'
+    if (json) {
+      input = input.slice(1).filter((arg) => arg !== '--json')
+      input.push('--help')
+    }
     const p = new Parser(input)
 
     let c = this._reset()
@@ -252,7 +280,14 @@ class Command {
 
     if (!bail) {
       if (c.flags.help) {
-        if (!opts.silent) console.log(c.help())
+        if (!opts.silent) {
+          const help = json
+            ? JSON.stringify(c._json(), (_, value) =>
+                typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : value
+              )
+            : c.help()
+          console.log(help)
+        }
         return null
       }
       for (const v of c._validators) {

@@ -154,7 +154,7 @@ Update command with additional modifiers & subcommands. A runner function may al
 
 #### `cmd.parse(argv = process.argv.slice(2), opts)`
 
-Parses an array of command line arguments and executes the command based on the provided definition. Automatically handles '--help' or '-h' flags to display help information.
+Parses an array of command line arguments and executes the command based on the provided definition. Automatically handles '--help' or '-h' flags to display help information, use `help --json` for structured output.
 
 - **Arguments**:
   - `argv` `<String[]>`: An array of strings representing the command line arguments. Defaults to program arguments `process.argv.slice(2)` if unspecified. If the `-h` or `--help` flag is supplied help for the related command will be shown.
