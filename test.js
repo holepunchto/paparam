@@ -1153,7 +1153,8 @@ test('async parse error handling', async (t) => {
     arg('<link>', 'App link key'),
     sloppy({ flags: true }),
     async function () {
-      await Promise.reject(new Error('test'))
+      await Promise.resolve()
+      throw new Error('test')
     }
   )
   const input = ['--dry-run', 'pear://link']
