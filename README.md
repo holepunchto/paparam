@@ -166,9 +166,9 @@ Parses an array of command line arguments and executes the command based on the 
 - **Returns**:
   - `null` if the parsing leads to an error (with an error output) or the command object if the command executes without errors.
 
-##### `help --json`
+#### `help --json`
 
-Outputs structured help as JSON when a `help` command is defined.
+Prints structured command help as JSON.
 
 #### `cmd.help(...subcommands)`
 
