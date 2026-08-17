@@ -281,11 +281,9 @@ class Command {
     if (!bail) {
       if (c.flags.help) {
         if (!opts.silent) {
-          const help = json
-            ? JSON.stringify(c._json(), (_, value) =>
-                typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : value
-              )
-            : c.help()
+          const trim = (_, value) =>
+            typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : value
+          const help = json ? JSON.stringify(c._json(), trim) : c.help()
           console.log(help)
         }
         return null

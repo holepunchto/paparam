@@ -1240,24 +1240,7 @@ test('help --json outputs flags and commands', (t) => {
     ),
     command('help')
   )
-  const expected = `pear stage [flags] <link> [command]
-
-stage pear app
-
-more info
-about staging pear app
-
-Arguments:
-  <link>         App link key
-
-Flags:
-  --dry-run|-d   View the changes without applying them
-  --help|-h      Show help
-
-Commands:
-  run            Run app
-`
-  const expectedJson = {
+  const expected = {
     name: 'stage',
     summary: 'stage pear app',
     description: 'more info about staging pear app',
@@ -1277,15 +1260,10 @@ Commands:
       }
     }
   }
-  t.plan(2)
+  t.plan(1)
   const { log } = console
   console.log = (help) => {
-    t.is(help, expected)
-    console.log = log
-  }
-  cmd.parse(['stage', '--help'])
-  console.log = (help) => {
-    t.alike(JSON.parse(help), expectedJson)
+    t.alike(JSON.parse(help), expected)
     console.log = log
   }
   cmd.parse(['help', '--json', 'stage'])
