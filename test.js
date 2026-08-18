@@ -1243,7 +1243,7 @@ test('help --json outputs flags and commands', (t) => {
   const expected = {
     name: 'stage',
     summary: 'stage pear app',
-    description: 'more info about staging pear app',
+    description: 'more info\nabout staging pear app',
     args: { '<link>': 'App link key' },
     flags: {
       '--dry-run|-d': 'View the changes without applying them',
