@@ -176,7 +176,7 @@ class Command {
     return s
   }
 
-  _json() {
+  toJSON() {
     const json = {
       name: this.name,
       summary: this.summary,
@@ -186,15 +186,29 @@ class Command {
       commands: {}
     }
     for (const arg of this._definedArgs) {
-      if (!arg.hidden) json.args[arg.help] = arg.description
+      json.args[arg.help] = arg.description
     }
     if (this._definedRest) json.args[this._definedRest.help] = this._definedRest.description
     for (const flag of this._definedFlags.values()) {
-      if (!flag.hidden) json.flags[flag.help] = flag.description
+      json.flags[flag.help] = flag.description
     }
     for (const [name, command] of this._definedCommands) {
-      if (command.hidden) continue
-      json.commands[name] = command._json()
+      json.commands[name] = command.toJSON()
+    }
+    return json
+  }
+
+  helpJSON() {
+    const json = this.toJSON()
+    for (const arg of this._definedArgs) {
+      if (arg.hidden) delete json.args[arg.help]
+    }
+    for (const flag of this._definedFlags.values()) {
+      if (flag.hidden) delete json.flags[flag.help]
+    }
+    for (const [name, command] of this._definedCommands) {
+      if (command.hidden) delete json.commands[name]
+      else json.commands[name] = command.helpJSON()
     }
     return json
   }
@@ -215,8 +229,8 @@ class Command {
 
   parse(input = argv(), opts = { run: true }) {
     const { sync = false, bails = true } = opts
-    const json = input.includes('--json') && this._getCommand(input[0])?.name === 'help'
-    if (json) {
+    const isHelpJSON = input.includes('--json') && this._getCommand(input[0])?.name === 'help'
+    if (isHelpJSON) {
       input = input.slice(1).filter((arg) => arg !== '--json')
       input.push('--help')
     }
@@ -281,7 +295,7 @@ class Command {
     if (!bail) {
       if (c.flags.help) {
         if (!opts.silent) {
-          const help = json ? JSON.stringify(c._json()) : c.help()
+          const help = isHelpJSON ? JSON.stringify(c.helpJSON()) : c.help()
           console.log(help)
         }
         return null

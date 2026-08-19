@@ -1235,8 +1235,11 @@ test('help --json outputs flags and commands', (t) => {
       summary('stage pear app'),
       description('more info\nabout staging pear app'),
       arg('<link>', 'App link key'),
+      arg('[hidden]', 'Hidden arg').hide(),
       flag('--dry-run|-d', 'View the changes without applying them'),
-      command('run', summary('Run app'))
+      flag('--hidden', 'Hidden flag').hide(),
+      command('run', summary('Run app')),
+      command('hidden', summary('Hidden command')).hide()
     ),
     command('help')
   )
@@ -1260,7 +1263,11 @@ test('help --json outputs flags and commands', (t) => {
       }
     }
   }
-  t.plan(1)
+  t.plan(4)
+  const json = cmd.toJSON().commands.stage
+  t.is(json.args['[hidden]'], 'Hidden arg')
+  t.is(json.flags['--hidden'], 'Hidden flag')
+  t.is(json.commands.hidden.summary, 'Hidden command')
   const { log } = console
   console.log = (help) => {
     t.alike(JSON.parse(help), expected)
