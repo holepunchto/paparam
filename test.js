@@ -20,14 +20,14 @@ const {
 // Bare.argv is readOnly so skip the tests that try to modify
 const skipIfBare = typeof Bare !== 'undefined'
 
-test('command creation', async (t) => {
+test('command creation', (t) => {
   const cmd = command('test')
   t.plan(2)
   t.is(cmd.name, 'test')
   t.execution(() => cmd.parse([]))
 })
 
-test('command with description(text)', async (t) => {
+test('command with description(text)', (t) => {
   const desc = 'Test command description'
   const cmd = command('test', description(desc))
   t.plan(2)
@@ -35,7 +35,7 @@ test('command with description(text)', async (t) => {
   t.execution(() => cmd.parse([]))
 })
 
-test('command with description`text`', async (t) => {
+test('command with description`text`', (t) => {
   const cmd = command(
     'test',
     description`
@@ -52,77 +52,77 @@ test('command with description`text`', async (t) => {
   t.execution(() => cmd.parse([]))
 })
 
-test('command with boolean flag', async (t) => {
+test('command with boolean flag', (t) => {
   const cmd = command('test', flag('--flag', 'Test flag'))
   t.plan(1)
   cmd.parse(['--flag'])
   t.ok(cmd.flags.flag)
 })
 
-test('command with boolean flag (not set)', async (t) => {
+test('command with boolean flag (not set)', (t) => {
   const cmd = command('test', flag('--flag', 'Test flag'))
   t.plan(1)
   cmd.parse([])
   t.is(cmd.flags.flag, false)
 })
 
-test('command with boolean flag with default value', async (t) => {
+test('command with boolean flag with default value', (t) => {
   const cmd = command('test', flag('--flag', 'Test flag').default(true))
   t.plan(1)
   cmd.parse(['--flag'])
   t.ok(cmd.flags.flag)
 })
 
-test('command with boolean flag with default value (not set)', async (t) => {
+test('command with boolean flag with default value (not set)', (t) => {
   const cmd = command('test', flag('--flag', 'Test flag').default(true))
   t.plan(1)
   cmd.parse([])
   t.is(cmd.flags.flag, true)
 })
 
-test('command with string flag', async (t) => {
+test('command with string flag', (t) => {
   const cmd = command('test', flag('--flag [val] ', 'Test flag'))
   t.plan(1)
   cmd.parse(['--flag', 'val'])
   t.is(cmd.flags.flag, 'val')
 })
 
-test('command with string flag (no val)', async (t) => {
+test('command with string flag (no val)', (t) => {
   const cmd = command('test', flag('--flag [val] ', 'Test flag'))
   t.plan(1)
   cmd.parse(['--flag'])
   t.is(cmd.flags.flag, undefined)
 })
 
-test('command with string flag (not set)', async (t) => {
+test('command with string flag (not set)', (t) => {
   const cmd = command('test', flag('--flag [val] ', 'Test flag'))
   t.plan(1)
   cmd.parse([])
   t.is(cmd.flags.flag, undefined)
 })
 
-test('command with string flag with default value', async (t) => {
+test('command with string flag with default value', (t) => {
   const cmd = command('test', flag('--flag [val] ', 'Test flag').default('default-val'))
   t.plan(1)
   cmd.parse(['--flag', 'val'])
   t.is(cmd.flags.flag, 'val')
 })
 
-test('command with string flag with default value (no val)', async (t) => {
+test('command with string flag with default value (no val)', (t) => {
   const cmd = command('test', flag('--flag [val] ', 'Test flag').default('default-val'))
   t.plan(1)
   cmd.parse(['--flag'])
   t.is(cmd.flags.flag, 'default-val')
 })
 
-test('command with string flag with default value (not set)', async (t) => {
+test('command with string flag with default value (not set)', (t) => {
   const cmd = command('test', flag('--flag [val] ', 'Test flag').default('default-val'))
   t.plan(1)
   cmd.parse([])
   t.is(cmd.flags.flag, 'default-val')
 })
 
-test('command with string multiple flag', async (t) => {
+test('command with string multiple flag', (t) => {
   const cmd = command('test', flag('--flag [val] ', 'Test flag').multiple())
   t.plan(3)
   cmd.parse(['--flag', 'val'])
@@ -133,7 +133,7 @@ test('command with string multiple flag', async (t) => {
   t.alike(cmd.flags.flag, ['val', 'val2'])
 })
 
-test('command with string flag with valid choice', async (t) => {
+test('command with string flag with valid choice', (t) => {
   const cmd = command('test', flag('--flag [val] ', 'Test flag').choices(['val1', 'val2', 'val3']))
   t.plan(1)
 
@@ -141,21 +141,21 @@ test('command with string flag with valid choice', async (t) => {
   t.is(cmd.flags.flag, 'val2')
 })
 
-test('command with string flag with invalid choice', async (t) => {
+test('command with string flag with invalid choice', (t) => {
   const cmd = command('test', flag('--flag [val] ', 'Test flag').choices(['val1', 'val2', 'val3']))
   t.plan(1)
 
   t.exception(() => cmd.parse(['--flag', 'val4']), /INVALID_FLAG: flag/)
 })
 
-test('command with aliased flag', async (t) => {
+test('command with aliased flag', (t) => {
   const cmd = command('test', flag('--flag|-f', 'Test flag'))
   t.plan(1)
   cmd.parse(['-f'])
   t.ok(cmd.flags.flag)
 })
 
-test('command with <required> argument', async (t) => {
+test('command with <required> argument', (t) => {
   const cmd = command('test', arg('<arg>', 'Test argument'))
   t.plan(2)
   cmd.parse(['val'])
@@ -200,7 +200,7 @@ test('command with [optional] arg that is omitted', (t) => {
   t.execution(() => cmd.parse(['-l']))
 })
 
-test('command with rest arguments', async (t) => {
+test('command with rest arguments', (t) => {
   const cmd = command('test', arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'))
   cmd.parse(['val', 'some', 'more'])
   t.plan(6)
@@ -212,7 +212,7 @@ test('command with rest arguments', async (t) => {
   t.is(cmd.indices.rest, 1)
 })
 
-test('command with flags, rest arguments but no args', async (t) => {
+test('command with flags, rest arguments but no args', (t) => {
   const cmd = command('test', flag('-l', 'test flag'), rest('...rest', 'rest arguments'))
   cmd.parse(['-l', 'val', 'some', 'more'])
   t.plan(3)
@@ -221,7 +221,7 @@ test('command with flags, rest arguments but no args', async (t) => {
   t.is(cmd.indices.rest, 1)
 })
 
-test('command with flags & rest arguments swallows flags after first rest arg', async (t) => {
+test('command with flags & rest arguments swallows flags after first rest arg', (t) => {
   const cmd = command(
     'test',
     flag('--flag', 'Test argument'),
@@ -238,21 +238,21 @@ test('command with flags & rest arguments swallows flags after first rest arg', 
   t.is(cmd.indices.rest, 1)
 })
 
-test('command with header', async (t) => {
+test('command with header', (t) => {
   const hd = 'Test command header'
   const cmd = command('test', header(hd))
   t.plan(1)
   t.is(cmd.header, hd)
 })
 
-test('command with footer', async (t) => {
+test('command with footer', (t) => {
   const ft = 'Test command footer'
   const cmd = command('test', footer(ft))
   t.plan(1)
   t.is(cmd.footer, ft)
 })
 
-test('command parsing', async (t) => {
+test('command parsing', (t) => {
   const cmd = command('test', flag('--flag|-f', 'Test flag'), arg('<arg>', 'Test argument'))
   const input = ['argumentValue', '-f']
   cmd.parse(input)
@@ -1036,7 +1036,7 @@ test('subcommand parent flag', (t) => {
   t.ok(sub.parent.flags.flag, 'Parent flags from subcommand')
 })
 
-test('command with rest flags and args', async (t) => {
+test('command with rest flags and args', (t) => {
   const cmd = command(
     'test',
     arg('<arg>', 'Test argument'),
@@ -1050,7 +1050,7 @@ test('command with rest flags and args', async (t) => {
   t.is(cmd.indices.rest, 1)
 })
 
-test('command with empty rest', async (t) => {
+test('command with empty rest', (t) => {
   const cmd = command(
     'test',
     arg('<arg>', 'Test argument'),
@@ -1064,7 +1064,7 @@ test('command with empty rest', async (t) => {
   t.is(cmd.indices.rest, 1)
 })
 
-test('command with own flags, rest flags, and args', async (t) => {
+test('command with own flags, rest flags, and args', (t) => {
   const cmd = command(
     'test',
     flag('--flag-a'),
@@ -1077,13 +1077,13 @@ test('command with own flags, rest flags, and args', async (t) => {
   t.is(cmd.indices.rest, 2)
 })
 
-test('command with invalid flags, rest flags, and args', async (t) => {
+test('command with invalid flags, rest flags, and args', (t) => {
   const cmd = command('test', arg('<arg>', 'Test argument'), rest('...rest', 'rest arguments'))
   t.plan(1)
   t.exception(() => cmd.parse(['--flag-a', 'val', '--flag-b', 'rest-arg']), /UNKNOWN_FLAG: flag-a/)
 })
 
-test('hyphenated-flag is parsed camelCase, with "true" value, no kebab-case', async (t) => {
+test('hyphenated-flag is parsed camelCase, with "true" value, no kebab-case', (t) => {
   t.plan(2)
   const cmd = command('test', flag('--hyphenated-flag', 'Hyphenated flag'), function (cmd) {
     t.ok(cmd.flags.hyphenatedFlag, 'hyphenatedFlag should be true')
@@ -1094,7 +1094,7 @@ test('hyphenated-flag is parsed camelCase, with "true" value, no kebab-case', as
   cmd.parse(input)
 })
 
-test('hyphenated-flag is parsed camelCase, with default "false" value, no kebab-case', async (t) => {
+test('hyphenated-flag is parsed camelCase, with default "false" value, no kebab-case', (t) => {
   t.plan(2)
   const cmd = command(
     'test',
@@ -1110,7 +1110,7 @@ test('hyphenated-flag is parsed camelCase, with default "false" value, no kebab-
   cmd.parse(input)
 })
 
-test('correct boolean value of flag aliases', async (t) => {
+test('correct boolean value of flag aliases', (t) => {
   t.plan(8)
   const cmd = command(
     'test',
@@ -1131,7 +1131,7 @@ test('correct boolean value of flag aliases', async (t) => {
   cmd.parse(aliasInput)
 })
 
-test('correct non-boolean value of flag aliases', async (t) => {
+test('correct non-boolean value of flag aliases', (t) => {
   t.plan(4)
   const cmd = command('test', flag('--flag|-f [val] ', 'Test flag'), function (cmd) {
     t.is(cmd.flags.f, 'val', 'Flag alias has correct value')
@@ -1153,16 +1153,17 @@ test('async parse error handling', async (t) => {
     arg('<link>', 'App link key'),
     sloppy({ flags: true }),
     async function () {
+      await Promise.resolve()
       throw new Error('test')
     }
   )
   const input = ['--dry-run', 'pear://link']
 
   t.execution(() => cmd.parse(input))
-  t.exception(() => cmd.running, new Error('test'))
+  await t.exception(() => cmd.running, new Error('test'))
 })
 
-test('sync parse error handling', async (t) => {
+test('sync parse error handling', (t) => {
   t.plan(1)
   const cmd = command(
     'stage',
@@ -1178,7 +1179,7 @@ test('sync parse error handling', async (t) => {
   t.exception(() => cmd.parse(input, { sync: true }), new Error('test'))
 })
 
-test('command with aliased flag and double dash', async (t) => {
+test('command with aliased flag and double dash', (t) => {
   const cmd = command('test', flag('--flag|-f', 'Test flag'))
   t.plan(1)
   t.exception(() => cmd.parse(['--f']), /UNKNOWN_FLAG: f/)
@@ -1205,7 +1206,7 @@ test('args sloppy mode, no bail', (t) => {
   cmd.parse(combinedInput)
 })
 
-test('auto --help|-h support', async (t) => {
+test('auto --help|-h support', (t) => {
   const cmd = command('test')
   t.plan(2)
   const { log } = console
@@ -1276,7 +1277,7 @@ test('help --json outputs flags and commands', (t) => {
   cmd.parse(['help', '--json', 'stage'])
 })
 
-test('parse - silent option', async (t) => {
+test('parse - silent option', (t) => {
   t.plan(0)
   const cmd = command('test')
   const { log } = console
@@ -1289,7 +1290,7 @@ test('parse - silent option', async (t) => {
   t.end()
 })
 
-test('indices for boolean flag and aliased boolean flag', async (t) => {
+test('indices for boolean flag and aliased boolean flag', (t) => {
   const cmd = command('test', flag('--bar|-b', 'Test flag A'), flag('--foo|-f', 'Test flag B'))
   t.plan(4)
   cmd.parse(['--bar', '-f'])
@@ -1299,7 +1300,7 @@ test('indices for boolean flag and aliased boolean flag', async (t) => {
   t.is(cmd.indices.flags.foo, 1)
 })
 
-test('indices for value flag and aliased value flag', async (t) => {
+test('indices for value flag and aliased value flag', (t) => {
   const cmd = command(
     'test',
     flag('--bar|-b [val] ', 'Test flag A'),
@@ -1313,21 +1314,21 @@ test('indices for value flag and aliased value flag', async (t) => {
   t.is(cmd.indices.flags.foo, 3)
 })
 
-test('single multiple flag index is an array', async (t) => {
+test('single multiple flag index is an array', (t) => {
   const cmd = command('test', flag('--flag [val] ', 'Test flag').multiple())
   t.plan(1)
   cmd.parse(['--flag', 'val'])
   t.alike(cmd.indices.flags.flag, [1])
 })
 
-test('multiple flag index is an array', async (t) => {
+test('multiple flag index is an array', (t) => {
   const cmd = command('test', flag('--flag [val] ', 'Test flag').multiple())
   t.plan(1)
   cmd.parse(['--flag', 'val', '--flag', 'val2'])
   t.alike(cmd.indices.flags.flag, [1, 3])
 })
 
-test('hyphenated flag index is correct', async (t) => {
+test('hyphenated flag index is correct', (t) => {
   const cmd = command('test', flag('--flag-a|-f [val] ', 'Test flag'))
   t.plan(3)
   cmd.parse(['--flag-a', 'val'])
@@ -1336,7 +1337,7 @@ test('hyphenated flag index is correct', async (t) => {
   t.alike(cmd.indices.flags.f, 1)
 })
 
-test('multiple hyphenated flag index is an array', async (t) => {
+test('multiple hyphenated flag index is an array', (t) => {
   const cmd = command('test', flag('--flag-a|-f [val] ', 'Test flag').multiple())
   t.plan(3)
   cmd.parse(['--flag-a', 'val', '-f', 'val2'])
@@ -1345,7 +1346,7 @@ test('multiple hyphenated flag index is an array', async (t) => {
   t.alike(cmd.indices.flags.f, [1, 3])
 })
 
-test('parse run: false', async (t) => {
+test('parse run: false', (t) => {
   const cmd = command('test', () => t.fail())
   t.plan(2)
   t.is(cmd.name, 'test')
