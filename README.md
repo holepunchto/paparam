@@ -166,6 +166,10 @@ Parses an array of command line arguments and executes the command based on the 
 - **Returns**:
   - `null` if the parsing leads to an error (with an error output) or the command object if the command executes without errors.
 
+#### `help --json`
+
+Prints structured command help as JSON.
+
 #### `cmd.help(...subcommands)`
 
 Generates and returns help text for the command. Can take subcommand names as arguments to generate help for a specific subcommand path. When calling `cmd.parse(argv)`, if the `-h` or `--help` flag is supplied, this method is automatically called and output.
