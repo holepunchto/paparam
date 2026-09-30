@@ -273,6 +273,7 @@ Defines a flag for a command. Flags can be simple boolean switches or can expect
   - `flag` `<Flag>`: A modifier that configures the command to recognize and handle the specified flag.
   - `flag.hide()` to hide the flag from help.
   - `flag.multiple()` to make this flag into an array of all passed values instead of the latest one only.
+  - `flag.default(value)` to set the value used when the flag is omitted. For flags with an optional value, it is also used when the flag is supplied without a value.
   - `flag.hint(text)` to add extended, free-form help text for this flag (e.g., caveats, examples). Tools can surface it on demand.
 
 ### `arg(spec, description)`
@@ -382,7 +383,7 @@ The `command` function can also accept plain objects with the following form:
 `modifier`: names of exported functions designed to passed to `command` function such as `flag(...)`, `arg(...)`, `summary(...)` and so on.
 `<arg1>`: first arg passed, e.g. `flag('--some value') -> 'flag --some value'`, `rest('[...args]') -> 'rest [...args]'`
 `<arg2>`: second arg passed to modifier `flag('--some value', 'some flag') -> {'flag --some value': 'some flag'}`
-`['<arg2>', adjusters {...}]`: adjusters are methods on modifiers, such as `flag.multiple()`, `flag.choices(...)`, `flag.hide()` and `arg.hide()`. For adjusters with args the value should be the arg eg `{choices: ['a', 'b', 'c']}`, otherwise set to `true` to enable `{ multiple: true }`
+`['<arg2>', adjusters {...}]`: adjusters are methods on modifiers, such as `flag.multiple()`, `flag.default(...)`, `flag.choices(...)`, `flag.hide()` and `arg.hide()`. For adjusters with args the value should be the arg, e.g. `{choices: ['a', 'b', 'c']}`, otherwise set to `true` to enable `{ multiple: true }`.
 
 Example:
 
@@ -396,6 +397,7 @@ const cmd = command({
   footer: 'footer text',
   'flag --define flag': 'describe flag',
   'flag --define multiflag': ['describe flag', { multiple: true }],
+  'flag --define port [port]': ['port to listen on', { default: 8080 }],
   'flag --define hidden-flag': ['describe flag', { hide: true }],
   'flag --define choices': ['describe flag', { choices: ['a', 'b', 'c'] }],
   'arg <required>': 'required arg',
