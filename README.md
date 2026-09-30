@@ -273,7 +273,7 @@ Defines a flag for a command. Flags can be simple boolean switches or can expect
   - `flag` `<Flag>`: A modifier that configures the command to recognize and handle the specified flag.
   - `flag.hide()` to hide the flag from help.
   - `flag.multiple()` to make this flag into an array of all passed values instead of the latest one only.
-  - `flag.default(value)` to set the value used when the flag is omitted. For flags with an optional value, it is also used when the flag is supplied without a value.
+  - `flag.default(value)` to set the value used when the flag is omitted.
   - `flag.hint(text)` to add extended, free-form help text for this flag (e.g., caveats, examples). Tools can surface it on demand.
 
 ### `arg(spec, description)`
