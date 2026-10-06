@@ -1494,3 +1494,50 @@ test('.hint(text) stores extended help and chains, without disturbing parsing', 
   })
   c2.parse(['hello', '--m', 'x'])
 })
+
+test('negative numbers are read as flag values and args, not as short flags', (t) => {
+  const cmd = command(
+    'test',
+    flag('--num|-n <signed>', 'number flag'),
+    arg('<number>', 'number arg')
+  )
+  t.plan(4)
+  cmd.parse(['--num', '-1', '-999'])
+  t.is(cmd.flags.num, '-1')
+  t.is(cmd.args.number, '-999')
+  cmd.parse(['-n', '-1.5', '-.5'])
+  t.is(cmd.flags.num, '-1.5')
+  t.is(cmd.args.number, '-.5')
+})
+
+test('negative numbers in exponent form are values', (t) => {
+  const cmd = command('test', flag('--num <signed>', 'number flag'))
+  t.plan(1)
+  cmd.parse(['--num', '-1e3'])
+  t.is(cmd.flags.num, '-1e3')
+})
+
+test('negative-looking tokens that are not numbers are still short flags', (t) => {
+  const cmd = command('test', flag('-a', 'a'), flag('-b', 'b'), arg('[x]', 'x'))
+  t.plan(3)
+  cmd.parse(['-ab'])
+  t.is(cmd.flags.a, true)
+  t.is(cmd.flags.b, true)
+  t.is(cmd.args.x, undefined)
+})
+
+test('a command with a digit short flag keeps reading -<digit> as that flag', (t) => {
+  const cmd = command('test', flag('--one|-1', 'one'), arg('[x]', 'x'))
+  t.plan(2)
+  cmd.parse(['-1'])
+  t.is(cmd.flags.one, true)
+  t.is(cmd.args.x, undefined)
+})
+
+test('negative numbers reach a subcommand flag', (t) => {
+  const sub = command('move', flag('--by <delta>', 'delta'))
+  const cmd = command('root', sub)
+  t.plan(1)
+  cmd.parse(['move', '--by', '-3'])
+  t.is(sub.flags.by, '-3')
+})
