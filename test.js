@@ -1433,3 +1433,63 @@ test('.hint(text) stores extended help and chains, without disturbing parsing', 
   })
   c2.parse(['hello', '--m', 'x'])
 })
+
+test('negative numbers as flag values', (t) => {
+  const cmd = command('app', flag('--offset|-o <n>'), flag('--opt [n]'))
+  const parse = (argv) => cmd.parse(argv, { run: false }).flags
+
+  t.is(parse(['--offset=-5']).offset, '-5', 'inline value')
+  t.is(parse(['--offset', '-5']).offset, '-5', 'long flag')
+  t.is(parse(['-o', '-5']).o, '-5', 'short flag')
+  t.is(parse(['-o', '-1.5']).offset, '-1.5', 'decimal')
+  t.is(parse(['-o', '-.5']).offset, '-.5', 'leading dot')
+  t.is(parse(['-o', '-1e3']).offset, '-1e3', 'exponent')
+  t.is(parse(['--opt', '-5']).opt, '-5', 'optional value')
+})
+
+test('negative numbers as args', (t) => {
+  const cmd = command('app', arg('<x>'), arg('[y]'))
+  const c = cmd.parse(['-5', '-10'], { run: false })
+  t.is(c.args.x, '-5')
+  t.is(c.args.y, '-10')
+  t.alike(c.positionals, ['-5', '-10'])
+})
+
+test('negative numbers as multiple flag values', (t) => {
+  const cmd = command('app', flag('--n <n>').multiple())
+  const c = cmd.parse(['--n', '-1', '--n', '-2'], { run: false })
+  t.alike(c.flags.n, ['-1', '-2'])
+})
+
+test('negative numbers with numeric short flags defined', (t) => {
+  const cmd = command('app', flag('-1'), flag('-5'), flag('--n <n>'), arg('[x]'))
+  const parse = (argv) => cmd.parse(argv, { run: false })
+
+  t.is(parse(['-1']).flags['1'], true, 'defined numeric flag wins')
+
+  const both = parse(['-15'])
+  t.is(both.flags['1'], true, 'bundled numeric flags')
+  t.is(both.flags['5'], true, 'bundled numeric flags')
+  t.is(both.args.x, undefined)
+
+  const num = parse(['-16'])
+  t.is(num.args.x, '-16', 'not all chars are flags, so it is a number')
+  t.is(num.flags['1'], false)
+
+  t.is(parse(['--n', '-7']).flags.n, '-7', 'undefined digit is a value')
+  t.is(parse(['--n=-1']).flags.n, '-1', 'inline value bypasses flag lookup')
+
+  t.exception(() => cmd.parse(['--n', '-1']), /INVALID_FLAG/, 'ambiguous value is a flag')
+})
+
+test('negative numbers with sloppy flags', (t) => {
+  const cmd = command('app', sloppy({ flags: true }), flag('--n <n>'), arg('[x]'))
+  t.is(cmd.parse(['-5'], { run: false }).args.x, '-5')
+  t.is(cmd.parse(['--n', '-5'], { run: false }).flags.n, '-5')
+})
+
+test('non-numeric dash values are still flags', (t) => {
+  const cmd = command('app', flag('--n <n>'))
+  t.exception(() => cmd.parse(['--n', '-foo']), /INVALID_FLAG/)
+  t.exception(() => cmd.parse(['--n', '-5x']), /INVALID_FLAG/)
+})

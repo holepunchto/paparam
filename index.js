@@ -32,7 +32,7 @@ class Parser {
     return rest
   }
 
-  next() {
+  next(cmd = null) {
     while (true) {
       const r = {
         flag: null,
@@ -64,6 +64,11 @@ class Parser {
         const name = inverse ? a.slice(5, j) : a.slice(2, j)
         const value = a.slice(j + 1)
         r.flag = { long: true, name, value, inverse }
+        return r
+      }
+
+      if (isNegativeNumber(a) && !(cmd && cmd._isShortFlags(a))) {
+        r.arg = a
         return r
       }
 
@@ -209,7 +214,7 @@ class Command {
         break
       }
 
-      const n = p.next()
+      const n = p.next(c)
       if (n === null) break
 
       if (n.flag) {
@@ -497,6 +502,13 @@ class Command {
     return f || null
   }
 
+  _isShortFlags(a) {
+    for (let i = 1; i < a.length; i++) {
+      if (!this._definedFlags.has(a[i])) return false
+    }
+    return true
+  }
+
   _getCommand(name) {
     return this._definedCommands.get(name) || null
   }
@@ -532,7 +544,7 @@ class Command {
         return null
       }
 
-      const next = parser.next()
+      const next = parser.next(this)
       const argless = next === null || !next.arg
       if (def.valueRequired && argless && !def.hasDefault) {
         return createBail(this, 'INVALID_FLAG', flag, null)
@@ -848,6 +860,10 @@ function parseFlag(help) {
   }
 
   return result
+}
+
+function isNegativeNumber(s) {
+  return /^-(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(s)
 }
 
 function trimFlag(s) {
