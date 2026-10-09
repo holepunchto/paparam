@@ -1,6 +1,8 @@
 'use strict'
 const EOL = '\n'
 const noop = () => {}
+// -1, -999, -1.5, -.5, -1e3: read as values, not as clusters of short flags
+const NEGATIVE_NUMBER = /^-(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i
 module.exports = {
   command,
   hiddenCommand,
@@ -23,6 +25,7 @@ class Parser {
     this.argv = argv
     this.i = 0
     this.multi = null
+    this.command = null
   }
 
   rest() {
@@ -64,6 +67,11 @@ class Parser {
         const name = inverse ? a.slice(5, j) : a.slice(2, j)
         const value = a.slice(j + 1)
         r.flag = { long: true, name, value, inverse }
+        return r
+      }
+
+      if (NEGATIVE_NUMBER.test(a) && !this.command?._hasNumericFlag()) {
+        r.arg = a
         return r
       }
 
@@ -251,6 +259,7 @@ class Command {
         break
       }
 
+      p.command = c
       const n = p.next()
       if (n === null) break
 
@@ -544,6 +553,15 @@ class Command {
 
   _getCommand(name) {
     return this._definedCommands.get(name) || null
+  }
+
+  // A command that defines a digit as a short flag (e.g. -1) keeps reading
+  // negative-number tokens as flags, so existing CLIs do not change meaning.
+  _hasNumericFlag() {
+    for (const name of this._definedFlags.keys()) {
+      if (name.length === 1 && name >= '0' && name <= '9') return true
+    }
+    return false
   }
 
   _onflag(flag, parser) {
