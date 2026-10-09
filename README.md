@@ -413,6 +413,29 @@ cmd.parse(['-h'])
 
 This is a useful format for supporting JSON-based definitions of commands.
 
+### Negative Numbers
+
+Tokens that look like negative numbers (e.g. `-5`, `-1.5`, `-.5`, `-1e3`) are parsed as values, both for flags and positional arguments. Like all other values, they are kept as strings.
+
+```js
+const cmd = command('app', flag('--offset|-o <n>'), arg('[x]'))
+cmd.parse(['--offset', '-5']) // cmd.flags.offset === '-5'
+cmd.parse(['-o', '-1.5']) // cmd.flags.offset === '-1.5'
+cmd.parse(['-10']) // cmd.args.x === '-10'
+```
+
+If the command defines short flags named with digits, a token is parsed as (combined) flags only when every character after the `-` is a defined flag, otherwise it is a number:
+
+```js
+const cmd = command('app', flag('-1'), flag('-5'), flag('--n <n>'), arg('[x]'))
+cmd.parse(['-15']) // cmd.flags['1'] === true, cmd.flags['5'] === true
+cmd.parse(['-16']) // cmd.args.x === '-16'
+cmd.parse(['--n', '-7']) // cmd.flags.n === '-7'
+cmd.parse(['--n=-1']) // cmd.flags.n === '-1', use the inline form when the value matches a defined flag
+```
+
+Values starting with `-` that are not numbers (e.g. `-foo`) are still parsed as flags; pass them inline with `--flag=-foo`.
+
 ## License
 
 Apache-2.0
