@@ -1359,6 +1359,16 @@ test('help flag should ignore required args', (t) => {
   t.execution(() => cmd.parse(['--help'], { silent: true }))
 })
 
+test('version flag should ignore required args', (t) => {
+  const cmd = command('test', flag('--version|-v', 'Show version'), arg('<foo>'))
+
+  t.plan(3)
+
+  t.execution(() => cmd.parse(['--version']))
+  t.execution(() => cmd.parse(['-v']))
+  t.exception(() => cmd.parse([]), /MISSING_ARG: <foo>/)
+})
+
 test('definition object - basic modifiers + help output', (t) => {
   t.plan(7)
 

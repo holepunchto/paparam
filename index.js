@@ -292,8 +292,10 @@ class Command {
 
     if (!bail) {
       const hasHelpFlag = 'help' in c.indices.flags
+      const hasVersionFlag = 'version' in c.indices.flags
+
       const missing = c._definedArgs.filter(
-        (arg) => !hasHelpFlag && !arg.optional && !(arg.name in c.args)
+        (arg) => !hasHelpFlag && !hasVersionFlag && !arg.optional && !(arg.name in c.args)
       )
 
       if (missing.length > 0) {
