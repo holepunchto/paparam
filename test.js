@@ -1369,6 +1369,36 @@ test('version flag should ignore required args', (t) => {
   t.exception(() => cmd.parse([]), /MISSING_ARG: <foo>/)
 })
 
+test('validator can fill a required arg', (t) => {
+  const cmd = command(
+    'test',
+    arg('<dir>'),
+    flag('--list'),
+    validate((cmd) => {
+      if (cmd.flags.list) cmd.args.dir = '-'
+      return true
+    })
+  )
+
+  t.plan(2)
+
+  t.is(cmd.parse(['--list']).args.dir, '-')
+  t.exception(() => cmd.parse([]), /MISSING_ARG: <dir>/)
+})
+
+test('missing required arg is reported before failing validators', (t) => {
+  const cmd = command(
+    'test',
+    arg('<foo>'),
+    validate('foo must be x', (cmd) => cmd.args.foo.length > 0 && cmd.args.foo === 'x')
+  )
+
+  t.plan(2)
+
+  t.exception(() => cmd.parse([]), /MISSING_ARG: <foo>/)
+  t.exception(() => cmd.parse(['y']), /foo must be x/)
+})
+
 test('definition object - basic modifiers + help output', (t) => {
   t.plan(7)
 

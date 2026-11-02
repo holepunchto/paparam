@@ -304,6 +304,8 @@ Defines rest arguments that are captured after all flags and named arguments.
 
 Defines a validation function for the command. This function is used to enforce custom validation logic on the command after parsing, such as checking the relationship of flags, arguments, rest arguments, etc.
 
+Validators run before required arguments are checked, so a validator can set a required argument, e.g. based on a flag.
+
 - **Arguments**:
   - `validator` `<Function>`: A function that takes the parsed command object and returns a boolean indicating whether the validation passed. If the validation fails, the function should throw an error or return a string describing the validation error.
     - **Parameters**:

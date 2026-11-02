@@ -291,6 +291,20 @@ class Command {
     if (c.parent) c.parent.current = c
 
     if (!bail) {
+      if (c.flags.help) {
+        if (!opts.silent) {
+          const help = isHelpJSON ? JSON.stringify(c.helpJSON()) : c.help()
+          console.log(help)
+        }
+        return null
+      }
+
+      for (const v of c._validators) {
+        bail = runValidation(v, c)
+        if (bail) break
+      }
+
+      // Validators can set required args, so check for missing ones after them.
       const hasHelpFlag = 'help' in c.indices.flags
       const hasVersionFlag = 'version' in c.indices.flags
 
@@ -304,20 +318,6 @@ class Command {
     }
 
     if (!bail) {
-      if (c.flags.help) {
-        if (!opts.silent) {
-          const help = isHelpJSON ? JSON.stringify(c.helpJSON()) : c.help()
-          console.log(help)
-        }
-        return null
-      }
-      for (const v of c._validators) {
-        bail = runValidation(v, c)
-        if (bail) {
-          if (bails) c.bail(bail)
-          return null
-        }
-      }
       if (c._runner !== null && opts.run !== false) {
         c.argv = input
         if (sync) runSync(c)
